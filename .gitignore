@@ -2,3 +2,6 @@
 koreaFootball.backup.html
 koreaFootball.2526final.html
 koreaFootball.pre-editui.html
+koreaFootball.pre-db.html
+migrate_players.sql
+fix_updated_at_trigger.sql

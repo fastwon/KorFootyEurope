@@ -2,31 +2,39 @@
 
 UEFA 협회계수 TOP 10 리그에서 뛰는 한국 선수의 시즌별·대회별 기록 대시보드.
 
-## 다음 세션 시작 시 확인 (2026년 8월 18일 세션 종료 시점 기준)
+## 다음 세션 시작 시 확인 (2026년 8월 20일 세션 종료 시점 기준)
 
-- ~~배경색 등 테마/디자인 수정~~ → **완료.** 라이트/다크 토글 추가함 (아래 "라이트/다크 테마 토글" 섹션 참고)
-- 남은 로드맵은 아래 "26/27 진행 상황" 섹션 안 "남은 단계"·"미확정 → null 유지" 참조 (황희찬 행선지, 라리가·분데스리가·쉬페르리그 8/20~23 개막 후 실제 기록 채우기, 편집 UI 다음 단계인 DB 연동 등)
+- ~~배경색 등 테마/디자인 수정~~ → **완료.** 라이트/다크 토글 추가함
+- ~~DB 연동~~ → **완료 (2026년 8월 20일).** `PLAYERS`가 이제 Supabase에서 온다. 아래 "Supabase DB 연동" 섹션 참고
+- **남은 확인**: 사용자가 실제 브라우저에서 로그인→편집→저장이 잘 되는지, GitHub Pages 배포(Settings→Pages 설정은 사용자가 직접 눌러야 함)가 됐는지 아직 확인 전 — 다음 세션 시작하면 먼저 물어볼 것
+- 그 외 로드맵: 3단계(24시간마다 AI API로 최신 기록 자동 반영하는 Supabase Edge Function + 크론) 착수 전. "26/27 진행 상황" 섹션의 "남은 단계"·"미확정 → null 유지"도 계속 참조 (황희찬 행선지, 리그 개막 후 실제 기록 채우기 등)
 
 ## 프로젝트 형태
 
-- **`koreaFootball.html` 단 하나가 프로젝트 전부다.** HTML·CSS·JS가 한 파일에 인라인돼 있고 외부 의존성·빌드·서버가 없다. 브라우저로 직접 열면 동작한다.
-- git 저장소가 아니다. 되돌리기 수단이 파일 복사밖에 없으므로 **구조를 바꾸기 전에는 반드시 복사본을 만든다** (`koreaFootball.2526final.html`처럼 기준 시즌을 이름에 넣는다).
-- `koreaFootball.backup.html`은 기록 검증·구간 구조 도입 **이전** 상태다. 최신 백업이 아니므로 이걸로 되돌리면 안 된다.
-- `koreaFootball.pre-editui.html`은 브라우저 편집 UI 도입 **직전** 스냅샷 (2026년 8월 18일, 14명 데이터 확정 상태).
+- **`koreaFootball.html`이 프론트엔드 전부다.** HTML·CSS·JS가 한 파일에 인라인돼 있고 빌드·번들러 없음. **다만 선수 기록(`PLAYERS`)은 2026년 8월 20일부로 하드코딩이 아니라 Supabase DB에서 매 로드마다 fetch해온다** — 아래 "Supabase DB 연동" 섹션 참고. `UEFA_LEAGUES`·`COUNTRY_COLOR`·`COMP_COUNTRY`·`LC`·`SEASONS`·`SL`·`CUR`·`ASOF` 같은 구조적 상수는 여전히 파일에 하드코딩돼 있다.
+- git 저장소다 (2026년 8월 20일부로 GitHub `fastwon/KorFootyEurope`, `main` 브랜치). 커밋은 사용자가 명시적으로 요청할 때만 한다.
+- `index.html`은 GitHub Pages용 리다이렉트 스텁이다 — 실제 페이지는 여전히 `koreaFootball.html`. GitHub Pages가 루트의 `index.html`을 기본으로 찾기 때문에 존재. 배포 URL: `https://fastwon.github.io/KorFootyEurope/`
+- 과거 스냅샷들은 git 이전 시절의 "복사로 되돌리기" 관행 흔적이라 `.gitignore` 처리돼 로컬에만 남아있고 저장소엔 없다. 최신순: `koreaFootball.pre-db.html`(DB 연동 직전, 2026-08-20) → `koreaFootball.pre-editui.html`(편집 UI 도입 직전, 2026-08-18) → `koreaFootball.backup.html`(기록 검증·구간 구조 도입 이전, 오래됨 — 되돌릴 때 쓰지 말 것) → `koreaFootball.2526final.html`(1단계 시즌축 추가 직전)
 
-## 편집 UI (2026년 8월 18일 추가)
+## Supabase DB 연동 (2026년 8월 20일 추가, DB 로드맵 2단계)
 
-**3단계 로드맵의 1단계.** 계획: 1) 프론트단 편집 UI(현재) → 2) DB 연동 → 3) 백엔드 + AI API로 24시간마다 최신 기록 자동 반영. 지금 단계는 서버·DB 없이 **File System Access API로 브라우저에서 직접 이 파일을 덮어쓰는 방식**이라, "파일 하나가 프로젝트 전부"라는 원칙을 그대로 유지한다.
+**3단계 로드맵**: 1) 프론트단 편집 UI(완료, 2026-08-18) → 2) DB 연동(완료, 2026-08-20) → 3) 백엔드 + AI API로 24시간마다 최신 기록 자동 반영(착수 전). 계획 파일: `~/.claude/plans/snappy-coalescing-river.md`.
 
-- **`✏️ 편집 모드` 토글** — 켜면 각 카드에 편집 버튼, `+ 새 선수 추가` 버튼이 나타난다 (`body.edit-mode` CSS로 제어)
-- **편집 모달** — 이름·영문명·포지션·아바타 색상 + 시즌 탭(6개) × 구간(stint) × 대회(comp) 중첩 편집. 리그는 `UEFA_LEAGUES` 기준 `<select>`라 오타로 깨질 수 없음. 대회명은 `<datalist>`로 기존 등록된 이름 자동완성 제공, **`COMP_COUNTRY`에 없는 대회명을 입력하면 경고 문구**가 뜬다(회색 배지로 표시된다는 안내) — 저장을 막지는 않음
-- **`💾 파일에 저장`** — `PLAYERS` 배열만 소스 텍스트로 재직렬화해서 `<script id="mainscript">` 내용을 교체하고, `document.documentElement.outerHTML` 전체를 새 파일로 만들어 저장한다.
-  - **Chrome/Edge**: `showSaveFilePicker()`로 실제 파일에 직접 덮어쓴다. 첫 저장 때만 파일 선택창이 뜨고(기존 `koreaFootball.html`을 선택해 덮어써야 함), 이후 저장은 같은 세션 내에서 파일핸들을 재사용해 원클릭. **새로고침하면 핸들이 초기화**돼 다시 선택해야 한다.
-  - **Safari/Firefox**: File System Access API 미지원이라 자동으로 새 파일 다운로드로 대체된다. 사용자가 수동으로 기존 파일과 교체해야 함.
-  - PLAYERS 배열만 교체 대상이다. `UEFA_LEAGUES`·`COUNTRY_COLOR`·`COMP_COUNTRY`·`LC` 같은 상수는 **이 UI로 편집 불가** — 새 리그 추가 등은 여전히 수동으로 4곳 동기화해야 한다(위 "리그·색상 상수의 동기화" 참조)
-- **알려진 한계**: 저장 시점의 시즌/리그탭 버튼 `.on` 클래스 등 현재 화면 상태가 그대로 저장 파일에 반영된다(코스메틱 이슈일 뿐, 데이터에는 영향 없음 — 실제로 이 때문에 기본 시즌이 25/26으로 되돌아간 적 있었음, 위 26/27 진행 상황 참고). 편집 중 변경사항은 "파일에 저장"을 누르기 전까지는 브라우저 메모리에만 있고, 새로고침하면 날아간다 — `beforeunload` 경고로 방지
-  - **`✏️ 편집 모드`/`💾 저장` 버튼 자체의 `.active`·`.dirty` 상태, `#edit-status` 텍스트는 2026년 8월 18일부로 고침** — `buildNewFileHtml()`이 outerHTML을 캡처하기 직전에 이 세 가지를 "저장 완료" 상태로 정규화했다가 캡처 후 복원한다. 고치기 전엔 편집 모드를 켠 채로 저장하면 다음에 열었을 때도 "편집 모드 켜짐·저장 안 됨" 배지가 뜨는 채로 저장 파일이 굳어버리는 실제 버그가 있었음(시즌 버튼 `.on` 클래스 문제와는 별개 사안, 이건 수정 완료)
-- 검증: Node로 편집→저장→재직렬화 전체 파이프라인을 시뮬레이션해서 확인 완료 (기존 선수 수정, 신규 선수 추가, 재직렬화된 배열이 유효한 JS로 파싱되는지까지)
+- **프로젝트**: Supabase, ref `pkrqyawldxdpvcncjtdc`. URL·anon key는 `koreaFootball.html`의 `SUPABASE_URL`/`SUPABASE_ANON_KEY` 상수에 그대로 박혀 있다 — **이건 의도된 것**. anon key는 Supabase 설계상 공개돼도 되는 키이고(비밀 유지 대상이 아님), 실제 방어선은 RLS 정책이다. **`service_role` 키는 절대 이 파일이나 어떤 클라이언트 코드에도 넣으면 안 됨** — 그건 3단계 서버측 Edge Function에서만 쓴다.
+- **테이블 `players`**: `id`(uuid, PK) / `name` / `en` / `pos` / `ava_bg` / `ava_c` / `seasons`(jsonb) / `created_at` / `updated_at`. `seasons` 컬럼에 기존 JS 데이터 모델(`{sid: null|{stints:[...]}}`)을 그대로 JSONB로 저장 — 완전 정규화 대신 이 방식을 택한 이유는 `getPlayerData`/`stintsOf`/`renderCards` 등 기존 렌더링 로직이 정확히 이 중첩 구조를 전제로 짜여 있어서, DB row를 `rowToPlayer()`로 매핑만 하면 **기존 렌더링 로직을 한 줄도 안 건드리고** 그대로 재사용할 수 있기 때문.
+  - **`updated_at` 자동 갱신 트리거 추가함(2026년 8월 20일)** — `default now()`는 INSERT 시점에만 값을 채우고 UPDATE 때는 그대로 안 바뀌길래, `set_updated_at()` 함수 + `players_set_updated_at` BEFORE UPDATE 트리거를 SQL Editor에서 추가 실행했다(`fix_updated_at_trigger.sql`, 1회성이라 `.gitignore` 처리). 이제부터 매 UPDATE마다 `updated_at`이 자동으로 현재 시각으로 바뀐다.
+- **RLS 정책**: 공개 SELECT(`using(true)`), INSERT/UPDATE/DELETE는 `auth.role()='authenticated'`만 허용. 특정 user_id 소유권 체크는 안 함 — 어차피 로그인 계정이 사용자 본인 1명뿐이라 "로그인했으면 다 허용"으로 단순화.
+- **로그인**: Supabase Auth 이메일/비밀번호. 헤더의 `🔐 로그인` 버튼 → 모달(`#login-overlay`, 편집 모달과는 별개) → `signInWithPassword()`. 세션은 Supabase 클라이언트가 알아서 localStorage에 유지한다. `sb.auth.onAuthStateChange`로 세션 상태를 `body.logged-in` 클래스에 반영 — `✏️ 편집 모드` 버튼 자체가 이 클래스가 있을 때만 보인다(`body.logged-in .edit-toggle-btn`). 로그아웃하면 편집모드도 강제로 꺼짐(`setLoggedInUI`).
+- **데이터 흐름**: 페이지 로드 시 `loadPlayers()`가 `PLAYERS`를 채우고 나서야 `render()`가 실행된다(`loadPlayers().then(render)`) — 예전처럼 `PLAYERS`가 소스에 상수로 박혀있지 않으므로 순서가 중요하다. 저장은 `savePlayerFromModal()`이 `sb.from('players').upsert(...)`로 그 선수 1명만 즉시 DB에 반영 — **더 이상 "파일에 저장" 개념이 없다.** 삭제도 `deletePlayerFromModal()`이 즉시 DB에서 지운다.
+- **제거된 것 (편집 UI 1단계에서 쓰던 파일-저장 방식)**: `serializePlayersArray`/`serializePlayer`/`serializeStint`/`serializeSeason`/`serializeComp`/`jsStr`/`buildNewFileHtml`/`saveToFile`/`fileHandle`/`dirty`·`markDirty`·`markSaved`/`beforeunload` 경고/`💾 파일에 저장` 버튼 전부 삭제. File System Access API를 이제 안 쓴다.
+- **마이그레이션**: 기존 15명을 `migrate_players.sql`(1회성, `.gitignore` 처리됨)로 Supabase SQL Editor에서 일괄 삽입. 앞으로 새 시즌·선수 추가는 이 파일이 아니라 편집 UI(로그인 후)나 Supabase 대시보드에서 직접 한다.
+- **검증 완료**: Node에서 실제 프로젝트에 REST API로 직접 fetch해서 (1) anon key로 읽기 성공 (2) 로그인 없이 쓰기 시도하면 RLS가 401로 막는 것 (3) `loadPlayers()`→`render()` 전체 파이프라인이 실제 DB의 15명 데이터로 6개 시즌×10개 리그탭 전부 정상 렌더링되는 것까지 확인. **아직 브라우저에서 실제 로그인→편집→저장 흐름은 사용자가 직접 테스트 안 함** — 다음에 확인 필요.
+
+## 편집 UI (2026년 8월 18일 추가, 2026년 8월 20일 저장 방식 변경)
+
+- **`✏️ 편집 모드` 토글** — 로그인 상태일 때만 버튼이 보인다(위 참고). 켜면 각 카드에 편집 버튼, `+ 새 선수 추가` 버튼이 나타난다 (`body.edit-mode` CSS로 제어)
+- **편집 모달** — 이름·영문명·포지션·아바타 색상 + 시즌 탭(6개) × 구간(stint) × 대회(comp) 중첩 편집. 리그는 `UEFA_LEAGUES` 기준 `<select>`라 오타로 깨질 수 없음. 대회명은 `<datalist>`로 기존 등록된 이름 자동완성 제공, **`COMP_COUNTRY`에 없는 대회명을 입력하면 경고 문구**가 뜬다(회색 배지로 표시된다는 안내) — 저장을 막지는 않음. 이 부분은 2026-08-18 도입 이후 변경 없음.
+- **저장은 이제 즉시 DB 반영** — 위 "Supabase DB 연동" 참고. `UEFA_LEAGUES`·`COUNTRY_COLOR`·`COMP_COUNTRY`·`LC` 같은 구조적 상수는 여전히 **이 UI로 편집 불가** — 새 리그 추가 등은 여전히 수동으로 파일 안 4곳 동기화해야 한다(위 "리그·색상 상수의 동기화" 참조)
 
 ## 라이트/다크 테마 토글 (2026년 8월 18일 추가)
 
@@ -45,7 +53,7 @@ UEFA 협회계수 TOP 10 리그에서 뛰는 한국 선수의 시즌별·대회�
 |---|---|
 | `<style>` | 전 스타일. CSS 변수 기반 라이트/다크 테마(위 참고). 다크가 기본값이며 GitHub 다크 테마 계열(`#0d1117` 배경 등)을 그대로 씀 |
 | `<body>` | 상단 탭 2개(선수 기록 / UEFA 리그 계수), 시즌 필터, 요약 4칸, 리그 탭, `#content` |
-| `<script>` 상수부 | `UEFA_LEAGUES` → `COUNTRY_COLOR` → `COMP_COUNTRY` → `INTL_COLOR` → `LC` → `SEASONS` / `SL` → `PLAYERS` |
+| `<script>` 상수부 | `UEFA_LEAGUES` → `COUNTRY_COLOR` → `COMP_COUNTRY` → `INTL_COLOR` → `LC` → `SEASONS` / `SL` → `let PLAYERS=[]`(Supabase에서 `loadPlayers()`로 채워짐, 하드코딩 아님) |
 | `<script>` 로직부 | 이벤트 핸들러 → 조회 헬퍼 → `getPlayerData` → 렌더러 |
 
 ## 핵심 데이터 모델: 구간(stint)
@@ -117,18 +125,18 @@ render()  →  buildLeagueTabs()  →  renderCards()
 
 ## 검증 방법
 
-브라우저를 열지 않고 Node로 로직을 돌려 탭별 수치를 전부 확인할 수 있다. `<script>` 블록만 뽑아 DOM을 스텁으로 대체한다.
+브라우저를 열지 않고 Node로 로직을 돌려 탭별 수치를 전부 확인할 수 있다. **2026년 8월 20일부로 스크립트 태그에 `id="mainscript"`가 붙어있고 `PLAYERS`가 하드코딩이 아니라 Supabase에서 온다** — 아래처럼 뽑아야 한다.
 
-```bash
-python -c "
-import re
-src=open(r'koreaFootball.html',encoding='utf-8').read()
-js=re.search(r'<script>(.*?)</script>', src, re.S).group(1).replace('render();','')
-open('check.js','w',encoding='utf-8').write(js+open('tail.js',encoding='utf-8').read())
-" && node check.js
+```js
+const fs=require('fs');
+const scriptText = fs.readFileSync('koreaFootball.html','utf-8')
+  .match(/<script id="mainscript">([\s\S]*?)<\/script>/)[1];
+// PLAYERS는 로그인/편집 UI 관련 함수(sb.auth...)까지 그대로 남겨두고,
+// 자동 부트스트랩 줄(document.getElementById('content').innerHTML=...; loadPlayers().then(render)...)만
+// 잘라내거나 그대로 둔 채 로 아래 DOM·localStorage 스텁 뒤에 붙여 실행한다.
 ```
 
-`tail.js`에는 `global.document={getElementById:..., querySelectorAll:()=>[]}` 스텁을 두고 `mode`/`selS`/`curTab`을 직접 바꿔가며 `buildLeagueTabs(); renderCards();`를 호출한다.
+Node 18+는 전역 `fetch`가 있으므로 `loadPlayers()`를 목업하지 않고 **실제 Supabase 프로젝트에 그대로 호출**해서 검증할 수 있다(테스트가 곧 진짜 연동 확인이 됨) — `global.document={getElementById:..., querySelectorAll:()=>[], documentElement:{...}}`, `global.localStorage={getItem:()=>null,setItem(){}}`, `global.window={addEventListener(){}}` 스텁을 두고, `loadPlayers().then(()=>{ curTab='all';mode='single';selS=sid; buildLeagueTabs(); renderCards(); ... })`처럼 실행한다. `mode`/`selS`/`curTab`을 직접 바꿔가며 여러 시즌·탭을 순회 검증.
 
 ### 웹 검색 시 언어 선택 (2026년 8월 17일 — 이현주 1라운드 출전 확인 사례)
 

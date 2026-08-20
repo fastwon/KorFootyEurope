@@ -3,6 +3,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>해외파 한국 선수 기록</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root{
   --bg:#0d1117; --bg-elev:#161b22; --bg-elev2:#0d1117;
@@ -126,15 +127,15 @@ select:focus{border-color:var(--accent-strong)}
 .edit-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
 .theme-toggle-btn{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);transition:all .15s;line-height:1}
 .theme-toggle-btn:hover{border-color:var(--text-muted);color:var(--text-heading)}
-.edit-toggle-btn{padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);font-weight:500;transition:all .15s}
+.edit-toggle-btn{display:none;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);font-weight:500;transition:all .15s}
+body.logged-in .edit-toggle-btn{display:inline-block}
 .edit-toggle-btn:hover{border-color:var(--text-muted);color:var(--text-heading)}
 .edit-toggle-btn.active{background:var(--accent-bg-soft);border-color:var(--accent);color:var(--accent)}
-.save-file-btn{padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--green);background:var(--green);color:#fff;font-weight:600;transition:all .15s;display:none}
-body.edit-mode .save-file-btn{display:inline-block}
-.save-file-btn:hover{background:var(--green-hover)}
-.save-file-btn.dirty{background:#9e6a03;border-color:#9e6a03;animation:pulse-save 1.6s infinite}
-.save-file-btn.dirty:hover{background:#bb8009}
-@keyframes pulse-save{0%,100%{opacity:1}50%{opacity:.65}}
+.auth-btn{padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);font-weight:500;transition:all .15s}
+.auth-btn:hover{border-color:var(--text-muted);color:var(--text-heading)}
+.auth-btn.logged-in-btn{display:none;border-color:var(--green);color:var(--green-text)}
+body.logged-in .auth-btn.logged-in-btn{display:inline-block}
+body.logged-in .auth-btn.login-btn{display:none}
 .edit-status{font-size:11px;color:var(--text-faint)}
 .card-edit-btn{display:none;padding:3px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg-subtle);color:var(--text-muted);flex-shrink:0}
 .card-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
@@ -189,8 +190,9 @@ body.edit-mode .add-player-btn{display:block}
 
   <div class="edit-toolbar">
     <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="테마 전환">☀️</button>
+    <button class="auth-btn login-btn" id="login-btn" onclick="openLoginModal()">🔐 로그인</button>
+    <button class="auth-btn logged-in-btn" id="logout-btn" onclick="logout()">🚪 로그아웃</button>
     <button class="edit-toggle-btn" id="edit-toggle-btn" onclick="toggleEditMode()">✏️ 편집 모드</button>
-    <button class="save-file-btn" id="save-file-btn" onclick="saveToFile()">💾 파일에 저장</button>
     <span class="edit-status" id="edit-status"></span>
   </div>
 
@@ -548,6 +550,21 @@ body.edit-mode .add-player-btn{display:block}
   <div class="modal" id="modal-body"></div>
 </div>
 
+<div class="modal-overlay" id="login-overlay">
+  <div class="modal" style="max-width:340px">
+    <h2>🔐 로그인</h2>
+    <form onsubmit="return doLogin(event)">
+      <div class="mfield" style="margin-bottom:10px"><label>이메일</label><input type="text" id="login-email" autocomplete="username"></div>
+      <div class="mfield" style="margin-bottom:10px"><label>비밀번호</label><input type="password" id="login-password" autocomplete="current-password"></div>
+      <div class="warn-note" id="login-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="mbtn secondary" onclick="closeLoginModal()">취소</button>
+        <button type="submit" class="mbtn primary">로그인</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script id="mainscript">
 (function(){
   const saved=localStorage.getItem('euko-theme');
@@ -642,128 +659,7 @@ const ASOF={'2627':'이 리그는 아직 확정된 한국 선수가 없습니다
 
 // 각 시즌은 stints(소속팀 구간) 배열. 시즌 중 이적하면 구간이 2개 이상이 되고,
 // 리그 탭 필터·집계는 전부 이 구간 단위로 이뤄진다.
-const PLAYERS=[
-  {name:'손흥민',en:'Son Heung-min',pos:'FW',ava:{bg:'#1c3a5a',c:'#93c5fd'},seasons:{
-    '2122':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:35,goals:23,assists:7},{name:'컨퍼런스리그',apps:4,goals:1,assists:1},{name:'FA컵',apps:2,goals:0,assists:0},{name:'EFL컵',apps:4,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:36,goals:10,assists:6},{name:'챔피언스리그',apps:8,goals:2,assists:0},{name:'FA컵',apps:3,goals:2,assists:0}]}]},
-    '2324':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:35,goals:17,assists:10},{name:'EFL컵',apps:1,goals:0,assists:0}]}]},
-    '2425':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:30,goals:7,assists:9},{name:'유로파리그',apps:10,goals:3,assists:1,win:true},{name:'FA컵',apps:2,goals:0,assists:1},{name:'EFL컵',apps:4,goals:1,assists:0}]}]},
-    '2526':null,
-    '2627':null,
-  }},
-  {name:'황희찬',en:'Hwang Hee-chan',pos:'FW',ava:{bg:'#3a2a1a',c:'#fcd34d'},seasons:{
-    '2122':{stints:[{league:'분데스리가',team:'RB 라이프치히',comps:[{name:'분데스리가',apps:2,goals:0,assists:0},{name:'DFB포칼',apps:1,goals:0,assists:1}]},{league:'프리미어리그',team:'울버햄프턴(임대)',comps:[{name:'프리미어리그',apps:30,goals:5,assists:1},{name:'EFL컵',apps:1,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:27,goals:3,assists:1},{name:'FA컵',apps:1,goals:1,assists:0},{name:'EFL컵',apps:4,goals:0,assists:1}]}]},
-    '2324':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:29,goals:12,assists:3},{name:'FA컵',apps:1,goals:0,assists:0},{name:'EFL컵',apps:1,goals:1,assists:0}]}]},
-    '2425':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:21,goals:2,assists:0},{name:'FA컵',apps:2,goals:0,assists:1},{name:'EFL컵',apps:2,goals:0,assists:0}]}]},
-    '2526':{stints:[{league:'프리미어리그',team:'울버햄프턴 ⚠️강등',comps:[{name:'프리미어리그',apps:26,goals:2,assists:2},{name:'FA컵',apps:2,goals:1,assists:1},{name:'EFL컵',apps:3,goals:0,assists:1}]}]},
-    '2627':null,
-  }},
-  {name:'이강인',en:'Lee Kang-in',pos:'MF',ava:{bg:'#0c2356',c:'#93c5fd'},seasons:{
-    '2122':{stints:[{league:'라리가',team:'RCD 마요르카',comps:[{name:'라리가',apps:30,goals:1,assists:2},{name:'코파델레이',apps:4,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'라리가',team:'RCD 마요르카',comps:[{name:'라리가',apps:36,goals:6,assists:6},{name:'코파델레이',apps:3,goals:0,assists:0}]}]},
-    '2324':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:23,goals:3,assists:4,win:true},{name:'챔피언스리그',apps:9,goals:1,assists:1},{name:'쿠프드프랑스',apps:3,goals:0,assists:0,win:true},{name:'트로페데샹피옹',apps:1,goals:1,assists:0,win:true}]}]},
-    '2425':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:30,goals:6,assists:6,win:true},{name:'챔피언스리그',apps:11,goals:0,assists:0,win:true},{name:'쿠프드프랑스',apps:3,goals:0,assists:0,win:true},{name:'트로페데샹피옹',apps:1,goals:0,assists:0,win:true}]}]},
-    '2526':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:27,goals:3,assists:4,win:true},{name:'챔피언스리그',apps:10,goals:0,assists:1},{name:'UEFA슈퍼컵',apps:1,goals:1,assists:0,win:true},{name:'FIFA인터컨티넨탈컵',apps:1,goals:0,assists:0,win:true},{name:'FIFA클럽월드컵',apps:4,goals:1,assists:0}]}]},
-    '2627':{stints:[{league:'라리가',team:'아틀레티코 마드리드',comps:[{name:'라리가',apps:1,goals:1,assists:0}]}]},
-  }},
-  {name:'김민재',en:'Kim Min-jae',pos:'CB',ava:{bg:'#3a1c1c',c:'#fca5a5'},seasons:{
-    '2122':{stints:[{league:'쉬페르리그',team:'페네르바체',comps:[{name:'쉬페르리그',apps:31,goals:1,assists:0},{name:'튀르키예컵',apps:1,goals:0,assists:0},{name:'유로파리그',apps:6,goals:0,assists:0},{name:'컨퍼런스리그',apps:2,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'세리에A',team:'SSC 나폴리',comps:[{name:'세리에A',apps:35,goals:2,assists:2,win:true},{name:'챔피언스리그',apps:9,goals:0,assists:0},{name:'코파이탈리아',apps:1,goals:0,assists:0}]}]},
-    '2324':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:25,goals:1,assists:1},{name:'챔피언스리그',apps:9,goals:0,assists:0},{name:'DFB포칼',apps:1,goals:0,assists:0},{name:'슈퍼컵',apps:1,goals:0,assists:0}]}]},
-    '2425':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:27,goals:2,assists:0,win:true},{name:'챔피언스리그',apps:13,goals:1,assists:0},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
-    '2526':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:25,goals:1,assists:1,win:true},{name:'챔피언스리그',apps:8,goals:0,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0,win:true},{name:'슈퍼컵',apps:1,goals:0,assists:0,win:true}]}]},
-    '2627':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[]}]},
-  }},
-  {name:'이재성',en:'Lee Jae-sung',pos:'MF',ava:{bg:'#1a3a2a',c:'#6ee7b7'},seasons:{
-    '2122':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:27,goals:4,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:34,goals:7,assists:4},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
-    '2324':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:29,goals:6,assists:3},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
-    '2425':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:33,goals:7,assists:6},{name:'DFB포칼',apps:1,goals:0,assists:1}]}]},
-    '2526':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:28,goals:4,assists:2},{name:'DFB포칼',apps:2,goals:0,assists:0},{name:'컨퍼런스리그',apps:9,goals:2,assists:3}]}]},
-    '2627':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[]}]},
-  }},
-  {name:'정우영',en:'Jeong Woo-yeong',pos:'MF',ava:{bg:'#1a2a3a',c:'#7dd3fc'},seasons:{
-    '2122':{stints:[{league:'분데스리가',team:'프라이부르크',comps:[{name:'분데스리가',apps:32,goals:5,assists:2},{name:'DFB포칼',apps:5,goals:0,assists:0}]}]},
-    '2223':{stints:[{league:'분데스리가',team:'프라이부르크',comps:[{name:'분데스리가',apps:26,goals:1,assists:1},{name:'유로파리그',apps:5,goals:1,assists:1},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
-    '2324':{stints:[{league:'분데스리가',team:'슈투트가르트',comps:[{name:'분데스리가',apps:26,goals:2,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
-    '2425':{stints:[{league:'분데스리가',team:'유니온 베를린(임대)',comps:[{name:'분데스리가',apps:23,goals:3,assists:2}]}]},
-    '2526':{stints:[{league:'분데스리가',team:'유니온 베를린',comps:[{name:'분데스리가',apps:28,goals:4,assists:1},{name:'DFB포칼',apps:3,goals:1,assists:0}]}]},
-    '2627':{stints:[{league:'분데스리가',team:'유니온 베를린',comps:[]}]},
-  }},
-  {name:'옌스',en:'Jens Castrop',pos:'MF/WB',ava:{bg:'#1a3d08',c:'#86efac'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':null,
-    '2526':{stints:[{league:'분데스리가',team:'보루시아 묀헨글라트바흐',comps:[{name:'분데스리가',apps:26,goals:3,assists:1},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
-    '2627':{stints:[{league:'분데스리가',team:'보루시아 묀헨글라트바흐 ⚠️어깨수술',comps:[]}]},
-  }},
-  {name:'황인범',en:'Hwang In-beom',pos:'MF',ava:{bg:'#2a1a3a',c:'#c4b5fd'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':{stints:[{league:'에레디비지에',team:'페예노르트',comps:[{name:'에레디비지에',apps:20,goals:2,assists:4},{name:'챔피언스리그',apps:6,goals:1,assists:1},{name:'KNVB컵',apps:2,goals:0,assists:0}]}]},
-    '2526':{stints:[{league:'에레디비지에',team:'페예노르트',comps:[{name:'에레디비지에',apps:17,goals:1,assists:3},{name:'챔피언스리그',apps:2,goals:0,assists:1},{name:'유로파리그',apps:4,goals:0,assists:0},{name:'KNVB컵',apps:1,goals:0,assists:0}]}]},
-    '2627':{stints:[{league:'프리메이라리가',team:'FC 포르투',comps:[{name:'프리메이라리가',apps:1,goals:0,assists:1}]}]},
-  }},
-  {name:'홍현석',en:'Hong Hyeon-seok',pos:'MF',ava:{bg:'#3a2e00',c:'#fde68a'},seasons:{
-    '2122':null,
-    '2223':{stints:[{league:'주필러프로리그',team:'KAA 헨트',comps:[{name:'주필러프로리그',apps:40,goals:7,assists:7},{name:'컨퍼런스리그',apps:11,goals:1,assists:3}]}]},
-    '2324':{stints:[{league:'주필러프로리그',team:'KAA 헨트',comps:[{name:'주필러프로리그',apps:32,goals:5,assists:7},{name:'유로파리그',apps:6,goals:0,assists:2}]}]},
-    '2425':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:23,goals:1,assists:1},{name:'DFB포칼',apps:1,goals:0,assists:0}]}]},
-    '2526':{stints:[{league:'리그앙',team:'FC 낭트',comps:[{name:'리그앙',apps:6,goals:0,assists:0}]},{league:'주필러프로리그',team:'KAA 헨트(임대)',comps:[{name:'주필러프로리그',apps:19,goals:1,assists:0}]}]},
-    '2627':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[]}]},
-  }},
-  {name:'오현규',en:'Oh Hyeon-gyu',pos:'FW',ava:{bg:'#3d0008',c:'#fca5a5'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':{stints:[{league:'주필러프로리그',team:'KRC 헹크',comps:[{name:'주필러프로리그',apps:33,goals:9,assists:1},{name:'벨기에컵',apps:5,goals:3,assists:0}]}]},
-    '2526':{stints:[{league:'주필러프로리그',team:'KRC 헹크',comps:[{name:'주필러프로리그',apps:20,goals:6,assists:3},{name:'벨기에컵',apps:2,goals:0,assists:0},{name:'유로파리그',apps:10,goals:4,assists:0}]},{league:'쉬페르리그',team:'베식타스 JK',comps:[{name:'쉬페르리그',apps:13,goals:6,assists:1},{name:'튀르키예컵',apps:3,goals:2,assists:1}]}]},
-    '2627':{stints:[{league:'쉬페르리그',team:'베식타스 JK',comps:[{name:'쉬페르리그',apps:1,goals:0,assists:0},{name:'유로파리그',apps:4,goals:0,assists:0}]}]},
-  }},
-  {name:'황의조',en:'Hwang Ui-jo',pos:'FW',ava:{bg:'#2a1a3a',c:'#c4b5fd'},seasons:{
-    '2122':{stints:[{league:'리그앙',team:'지롱댕 드 보르도',comps:[{name:'리그앙',apps:32,goals:11,assists:2},{name:'쿠프드프랑스',apps:1,goals:0,assists:0}]}]},
-    '2223':null,
-    '2324':{stints:[{league:'쉬페르리그',team:'알란야스포르(임대)',comps:[{name:'쉬페르리그',apps:8,goals:1,assists:0}]}]},
-    '2425':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[{name:'쉬페르리그',apps:30,goals:7,assists:1},{name:'튀르키예컵',apps:2,goals:0,assists:0}]}]},
-    '2526':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[{name:'쉬페르리그',apps:33,goals:4,assists:6},{name:'튀르키예컵',apps:5,goals:0,assists:0}]}]},
-    '2627':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[]}]},
-  }},
-  {name:'조진호',en:'Jo Jin-ho',pos:'MF',ava:{bg:'#0a2e3a',c:'#67e8f9'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':null,
-    '2526':{stints:[{league:'쉬페르리그',team:'코냐스포르',comps:[{name:'쉬페르리그',apps:20,goals:1,assists:1},{name:'튀르키예컵',apps:5,goals:0,assists:1}]}]},
-    '2627':null,
-  }},
-  {name:'이현주',en:'Lee Hyun-ju',pos:'MF',ava:{bg:'#2a0a3a',c:'#e9d5ff'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':null,
-    '2526':{stints:[{league:'프리메이라리가',team:'FC 아로카',comps:[{name:'프리메이라리가',apps:30,goals:7,assists:3},{name:'타사드포르투갈',apps:2,goals:0,assists:0}]}]},
-    '2627':{stints:[{league:'프리메이라리가',team:'FC 아로카',comps:[{name:'프리메이라리가',apps:2,goals:0,assists:1}]}]},
-  }},
-  {name:'이한범',en:'Lee Han-beom',pos:'CB',ava:{bg:'#0a1f33',c:'#7dd3fc'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':null,
-    '2526':null,
-    '2627':{stints:[{league:'주필러프로리그',team:'클럽 브뤼헤',comps:[{name:'주필러프로리그',apps:1,goals:0,assists:0}]}]},
-  }},
-  {name:'양민혁',en:'Yang Min-hyeok',pos:'FW',ava:{bg:'#241a40',c:'#d8b4fe'},seasons:{
-    '2122':null,
-    '2223':null,
-    '2324':null,
-    '2425':null,
-    '2526':null,
-    '2627':{stints:[{league:'주필러프로리그',team:'KVC 베스테를로(임대)',comps:[{name:'주필러프로리그',apps:1,goals:0,assists:0}]}]},
-  }},
-];
+let PLAYERS=[];
 
 let mode='single',selS='2627',rfrom='2122',rto='2627',curTab='all';
 
@@ -1014,25 +910,64 @@ function renderCoef(){
   document.getElementById('coef-grid').innerHTML=html;
 }
 
+/* ===================== Supabase 연동 ===================== */
+const SUPABASE_URL='https://pkrqyawldxdpvcncjtdc.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcnF5YXdsZHhkcHZjbmNqdGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMjIzMDMsImV4cCI6MjEwMjc5ODMwM30.Dyt3q8EXnWg6DrgxFgW5QSt7J6J6AjQsSOKmDV4l64o';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+function rowToPlayer(row){
+  return{id:row.id,name:row.name,en:row.en,pos:row.pos,ava:{bg:row.ava_bg,c:row.ava_c},seasons:row.seasons};
+}
+function playerToRow(p){
+  const row={name:p.name,en:p.en,pos:p.pos,ava_bg:p.ava.bg,ava_c:p.ava.c,seasons:p.seasons};
+  if(p.id) row.id=p.id;
+  return row;
+}
+async function loadPlayers(){
+  const{data,error}=await sb.from('players').select('*').order('name');
+  if(error){
+    document.getElementById('content').innerHTML=`<div class="empty">데이터를 불러오지 못했습니다: ${error.message}</div>`;
+    throw error;
+  }
+  PLAYERS=data.map(rowToPlayer);
+}
+
+function setLoggedInUI(isLoggedIn){
+  document.body.classList.toggle('logged-in',isLoggedIn);
+  if(!isLoggedIn){
+    editMode=false;
+    document.body.classList.remove('edit-mode');
+    document.getElementById('edit-toggle-btn').classList.remove('active');
+  }
+}
+sb.auth.onAuthStateChange((_event,session)=>setLoggedInUI(!!session));
+
+function openLoginModal(){
+  document.getElementById('login-error').textContent='';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-overlay').classList.add('open');
+}
+function closeLoginModal(){ document.getElementById('login-overlay').classList.remove('open'); }
+async function doLogin(e){
+  e.preventDefault();
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const{error}=await sb.auth.signInWithPassword({email,password});
+  if(error){ document.getElementById('login-error').textContent='로그인 실패: '+error.message; return false; }
+  closeLoginModal();
+  return false;
+}
+async function logout(){ await sb.auth.signOut(); }
+
 /* ===================== 편집 UI ===================== */
-let editMode=false, dirty=false, fileHandle=null, editState=null;
+let editMode=false, editState=null;
 
 function toggleEditMode(){
   editMode=!editMode;
   document.body.classList.toggle('edit-mode',editMode);
   document.getElementById('edit-toggle-btn').classList.toggle('active',editMode);
 }
-function markDirty(){
-  dirty=true;
-  document.getElementById('save-file-btn').classList.add('dirty');
-  document.getElementById('edit-status').textContent='저장 안 된 변경사항 있음';
-}
-function markSaved(){
-  dirty=false;
-  document.getElementById('save-file-btn').classList.remove('dirty');
-  document.getElementById('edit-status').textContent='저장됨 · '+new Date().toLocaleTimeString('ko-KR');
-}
-window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
 
 function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1190,7 +1125,7 @@ function checkCompWarnings(){
     :'';
 }
 
-function savePlayerFromModal(){
+async function savePlayerFromModal(){
   const p=editState.player;
   if(!p.name.trim()){ alert('이름을 입력해주세요.'); return; }
   if(!p.en.trim()){ alert('영문명을 입력해주세요.'); return; }
@@ -1203,105 +1138,26 @@ function savePlayerFromModal(){
       }
     }
   }
-  if(editState.idx===null) PLAYERS.push(p);
-  else PLAYERS[editState.idx]=p;
+  const{data,error}=await sb.from('players').upsert(playerToRow(p)).select().single();
+  if(error){ alert('저장 실패: '+error.message); return; }
+  const saved=rowToPlayer(data);
+  if(editState.idx===null) PLAYERS.push(saved);
+  else PLAYERS[editState.idx]=saved;
   closeEditor();
-  markDirty();
+  document.getElementById('edit-status').textContent='저장됨 · '+new Date().toLocaleTimeString('ko-KR');
   render();
 }
-function deletePlayerFromModal(){
-  if(!confirm(`${editState.player.name} 선수를 삭제할까요? (파일 저장 전까지는 되돌릴 수 있습니다)`)) return;
+async function deletePlayerFromModal(){
+  if(!confirm(`${editState.player.name} 선수를 DB에서 완전히 삭제할까요? 되돌릴 수 없습니다.`)) return;
+  const{error}=await sb.from('players').delete().eq('id',editState.player.id);
+  if(error){ alert('삭제 실패: '+error.message); return; }
   PLAYERS.splice(editState.idx,1);
   closeEditor();
-  markDirty();
   render();
 }
 
-/* --- 소스 직렬화 & 파일 저장 --- */
-function jsStr(s){ return "'"+String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'"; }
-function serializeComp(c){
-  let s=`{name:${jsStr(c.name)},apps:${c.apps},goals:${c.goals},assists:${c.assists}`;
-  if(c.win) s+=',win:true';
-  return s+'}';
-}
-function serializeStint(st){
-  return `{league:${jsStr(st.league)},team:${jsStr(st.team)},comps:[${st.comps.map(serializeComp).join(',')}]}`;
-}
-function serializeSeason(season){
-  return season?`{stints:[${season.stints.map(serializeStint).join(',')}]}`:'null';
-}
-function serializePlayer(p){
-  const seasonsStr=SEASONS.map(sid=>`'${sid}':${serializeSeason(p.seasons[sid])}`).join(',\n    ');
-  return `  {name:${jsStr(p.name)},en:${jsStr(p.en)},pos:${jsStr(p.pos)},ava:{bg:${jsStr(p.ava.bg)},c:${jsStr(p.ava.c)}},seasons:{\n    ${seasonsStr},\n  }}`;
-}
-function serializePlayersArray(){
-  return 'const PLAYERS=[\n'+PLAYERS.map(serializePlayer).join(',\n')+',\n];';
-}
-function buildNewFileHtml(){
-  const orig=document.getElementById('mainscript').textContent;
-  const re=/const PLAYERS=\[[\s\S]*?\n\];(?=\s*\n\s*let mode=)/;
-  if(!re.test(orig)) throw new Error('PLAYERS 블록을 못 찾았습니다.');
-  const newScript=orig.replace(re,serializePlayersArray());
-
-  // 저장 시점의 일시적 UI 상태(편집모드 on·dirty 표시 등)가 파일에 그대로 굳지 않도록
-  // 캡처 직전 "저장 완료" 상태로 정규화했다가 캡처 후 복원한다.
-  const editToggleBtn=document.getElementById('edit-toggle-btn');
-  const saveFileBtn=document.getElementById('save-file-btn');
-  const editStatusEl=document.getElementById('edit-status');
-  const snap={
-    bodyEditMode:document.body.classList.contains('edit-mode'),
-    toggleActive:editToggleBtn.classList.contains('active'),
-    saveDirty:saveFileBtn.classList.contains('dirty'),
-    statusText:editStatusEl.textContent,
-  };
-  document.body.classList.remove('edit-mode');
-  editToggleBtn.classList.remove('active');
-  saveFileBtn.classList.remove('dirty');
-  editStatusEl.textContent='';
-
-  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-
-  if(snap.bodyEditMode) document.body.classList.add('edit-mode');
-  if(snap.toggleActive) editToggleBtn.classList.add('active');
-  if(snap.saveDirty) saveFileBtn.classList.add('dirty');
-  editStatusEl.textContent=snap.statusText;
-
-  html=html.replace(/(<script id="mainscript">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+newScript+b);
-  return html;
-}
-async function saveToFile(){
-  let html;
-  try{ html=buildNewFileHtml(); }
-  catch(e){ alert('저장 준비 중 오류: '+e.message); return; }
-
-  if('showSaveFilePicker' in window){
-    try{
-      if(!fileHandle){
-        fileHandle=await window.showSaveFilePicker({
-          suggestedName:'koreaFootball.html',
-          types:[{description:'HTML',accept:{'text/html':['.html']}}]
-        });
-      }
-      const writable=await fileHandle.createWritable();
-      await writable.write(html);
-      await writable.close();
-      markSaved();
-    }catch(err){
-      if(err.name!=='AbortError') alert('저장 실패: '+err.message);
-    }
-  } else {
-    const blob=new Blob([html],{type:'text/html'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='koreaFootball.html';
-    document.body.appendChild(a);a.click();a.remove();
-    URL.revokeObjectURL(url);
-    markSaved();
-    alert('이 브라우저는 파일 직접 저장을 지원하지 않아 새로 다운로드했습니다.\n다운로드된 파일로 기존 koreaFootball.html을 교체해주세요. (Chrome/Edge에서는 자동으로 원본 파일에 저장됩니다)');
-  }
-}
-
-render();
+document.getElementById('content').innerHTML='<div class="empty">불러오는 중…</div>';
+loadPlayers().then(render).catch(err=>console.error('선수 데이터 로드 실패',err));
 </script>
 
 </body></html>
