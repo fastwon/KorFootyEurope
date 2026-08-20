@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해외파 한국 선수 기록</title>
+<style>
+:root{
+  --bg:#0d1117; --bg-elev:#161b22; --bg-elev2:#0d1117;
+  --bg-subtle:#21262d; --bg-subtle2:#1c2030; --bg-subtle3:#12161d;
+  --border:#30363d; --border-subtle:#21262d;
+  --text:#e6edf3; --text-strong:#f0f6ff; --text-heading:#c9d1d9;
+  --text-muted:#8b949e; --text-faint:#484f58;
+  --accent:#58a6ff; --accent-strong:#388bfd;
+  --accent-bg-soft:#1c2d3a; --accent-border-soft:#2d4a5a;
+  --green:#238636; --green-hover:#2ea043; --green-text:#3fb950; --green-bg-soft:#0f2b16;
+  --gold:#f0c35a; --gold-bg-soft:#2d2200;
+  --warn:#d29922; --danger:#f85149; --danger-bg-soft:#3d1418;
+  --overlay:rgba(1,4,9,.75);
+}
+:root[data-theme="light"]{
+  --bg:#ffffff; --bg-elev:#f6f8fa; --bg-elev2:#ffffff;
+  --bg-subtle:#eaeef2; --bg-subtle2:#eef2f6; --bg-subtle3:#eef2f6;
+  --border:#d0d7de; --border-subtle:#d8dee4;
+  --text:#1f2328; --text-strong:#1f2328; --text-heading:#24292f;
+  --text-muted:#57606a; --text-faint:#6e7781;
+  --accent:#0969da; --accent-strong:#0969da;
+  --accent-bg-soft:#ddf4ff; --accent-border-soft:#54aeff;
+  --green:#1f883d; --green-hover:#1a7f37; --green-text:#1a7f37; --green-bg-soft:#dafbe1;
+  --gold:#9a6700; --gold-bg-soft:#fff8c5;
+  --warn:#9a6700; --danger:#d1242f; --danger-bg-soft:#ffebe9;
+  --overlay:rgba(140,149,159,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .15s,color .15s}
+.wrap{max-width:1000px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.sub{font-size:13px;color:var(--text-muted);margin-bottom:1.5rem}
+.main-tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.main-tab{padding:10px 20px;font-size:14px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.main-tab:hover{color:var(--text-heading)}
+.main-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.filter-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
+.filter-box h3{font-size:13px;font-weight:600;color:var(--text-heading);margin-bottom:12px}
+.sbtn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.sbtn{padding:5px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s}
+.sbtn:hover{border-color:var(--text-muted);color:var(--text-heading)}
+.sbtn.on{background:var(--accent-strong);border-color:var(--accent-strong);color:#fff;font-weight:600}
+.sbtn.cur{border-color:var(--gold);color:var(--gold)}
+.sbtn.cur.on{background:var(--gold-bg-soft);border-color:var(--gold);color:var(--gold)}
+.range-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.range-row label{font-size:12px;color:var(--text-muted)}
+select{background:var(--bg-elev2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer}
+select:focus{border-color:var(--accent-strong)}
+.apply-btn{padding:5px 14px;border-radius:8px;background:var(--green);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer}
+.apply-btn:hover{background:var(--green-hover)}
+.fhint{font-size:11px;color:var(--text-faint);margin-top:8px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.sc{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:.9rem;text-align:center}
+.sc .v{font-size:24px;font-weight:600;color:var(--text-strong)}
+.sc .l{font-size:11px;color:var(--text-muted);margin-top:3px}
+.league-tabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.ltab{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ltab:hover{color:var(--text-heading);border-color:var(--text-muted)}
+.ltab.on{color:#fff;border-color:transparent;font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mode-label{font-size:12px;color:var(--accent);background:var(--accent-bg-soft);border:1px solid var(--accent-border-soft);border-radius:6px;padding:4px 10px;margin-bottom:1rem;display:inline-block}
+.slbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 8px;display:flex;align-items:center;gap:8px}
+.slbl:first-child{margin-top:0}
+.slbl-dot{width:8px;height:8px;border-radius:50%}
+.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:10px;transition:border-color .15s}
+.card:hover{border-color:var(--accent-strong)}
+.ctop{display:flex;align-items:center;gap:12px;margin-bottom:14px;position:relative}
+.ava{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.ci{flex:1}
+.cn{font-size:15px;font-weight:600}
+.cen{font-size:11px;color:var(--text-muted);margin-top:1px}
+.cm{font-size:12px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bdg{font-size:11px;padding:2px 7px;border-radius:5px;font-weight:500}
+.bp{background:var(--bg-subtle);color:var(--text-muted);border:1px solid var(--border)}
+.comp-table{width:100%;border-collapse:collapse;margin-top:2px;table-layout:fixed}
+.comp-table th{font-size:11px;color:var(--text-faint);text-align:left;padding:4px 8px;border-bottom:1px solid var(--border-subtle);font-weight:500}
+.comp-table th.num,.comp-table td.num{width:58px;text-align:center}
+.comp-table td{font-size:13px;padding:6px 8px;border-bottom:1px solid var(--bg-elev);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.comp-table td.num{text-align:center;font-weight:600;color:var(--text-strong)}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table tr.total-row td{border-top:1px solid var(--border);font-weight:600;background:var(--bg-subtle2)}
+.comp-table tr.total-row td.num{color:var(--accent)}
+.comp-table tr.stint-row td{background:var(--bg-subtle3);padding:5px 8px;border-bottom:1px solid var(--border-subtle)}
+.stint-lbl{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.stint-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.comp-name{display:flex;align-items:center;gap:6px}
+.comp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.comp-lbl{font-size:12px;color:var(--text-heading)}
+.trophy-icon{font-size:12px;margin-left:2px}
+.hl{color:var(--gold)}
+.range-detail{margin-top:12px;border-top:1px solid var(--border-subtle);padding-top:10px}
+.rd-title{font-size:11px;color:var(--text-faint);margin-bottom:8px;text-transform:uppercase}
+.rd-row{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+.rd-s{font-size:11px;color:var(--text-muted);width:44px;flex-shrink:0}
+.rd-bar{flex:1;background:var(--bg-subtle);border-radius:3px;height:5px}
+.rd-fill{height:100%;border-radius:3px;background:var(--accent-strong)}
+.rd-num{font-size:11px;color:var(--text-muted);white-space:nowrap;min-width:140px;text-align:right}
+.coef-intro{font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.7;background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.coef-intro b{color:var(--text-heading)}
+.coef-grid{display:flex;flex-direction:column;gap:10px}
+.coef-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;transition:border-color .15s}
+.coef-card:hover{border-color:var(--accent-strong)}
+.coef-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.coef-rank{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.coef-info{flex:1}
+.coef-name{font-size:14px;font-weight:600}
+.coef-country{font-size:12px;color:var(--text-muted);margin-top:1px}
+.coef-pts{text-align:right}
+.coef-pts .pts{font-size:18px;font-weight:600;color:var(--text-strong)}
+.coef-pts .ptsl{font-size:11px;color:var(--text-muted)}
+.coef-bar-wrap{background:var(--bg-subtle);border-radius:4px;height:6px;margin-bottom:8px}
+.coef-bar{height:100%;border-radius:4px}
+.coef-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.coef-meta{font-size:11px;color:var(--text-faint)}
+.korean-badge{font-size:11px;padding:2px 8px;border-radius:5px;background:var(--green-bg-soft);color:var(--green-text);border:1px solid var(--green);font-weight:500}
+.korean-badge.none{background:var(--bg-subtle);color:var(--text-faint);border-color:var(--border)}
+.empty{text-align:center;padding:2.5rem;color:var(--text-muted);font-size:14px;background:var(--bg-elev);border:1px dashed var(--border);border-radius:12px}
+.note{font-size:11px;color:var(--text-faint);margin-top:12px;text-align:right;line-height:1.6}
+
+/* --- 편집 UI --- */
+.edit-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+.theme-toggle-btn{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);transition:all .15s;line-height:1}
+.theme-toggle-btn:hover{border-color:var(--text-muted);color:var(--text-heading)}
+.edit-toggle-btn{padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);font-weight:500;transition:all .15s}
+.edit-toggle-btn:hover{border-color:var(--text-muted);color:var(--text-heading)}
+.edit-toggle-btn.active{background:var(--accent-bg-soft);border-color:var(--accent);color:var(--accent)}
+.save-file-btn{padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--green);background:var(--green);color:#fff;font-weight:600;transition:all .15s;display:none}
+body.edit-mode .save-file-btn{display:inline-block}
+.save-file-btn:hover{background:var(--green-hover)}
+.save-file-btn.dirty{background:#9e6a03;border-color:#9e6a03;animation:pulse-save 1.6s infinite}
+.save-file-btn.dirty:hover{background:#bb8009}
+@keyframes pulse-save{0%,100%{opacity:1}50%{opacity:.65}}
+.edit-status{font-size:11px;color:var(--text-faint)}
+.card-edit-btn{display:none;padding:3px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg-subtle);color:var(--text-muted);flex-shrink:0}
+.card-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
+body.edit-mode .card-edit-btn{display:inline-block}
+.add-player-btn{display:none;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px dashed var(--accent-strong);background:transparent;color:var(--accent);font-weight:500;margin-bottom:1rem;width:100%}
+.add-player-btn:hover{background:var(--accent-bg-soft)}
+body.edit-mode .add-player-btn{display:block}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:var(--overlay);z-index:100;align-items:flex-start;justify-content:center;padding:3vh 1rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;max-width:640px;width:100%;padding:1.5rem;margin-bottom:3vh}
+.modal h2{font-size:16px;margin-bottom:1rem}
+.mrow{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.mfield{flex:1;min-width:100px}
+.mfield label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.mfield input[type=text],.mfield input[type=number]{width:100%;background:var(--bg-elev2);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:13px;outline:none}
+.mfield input[type=text]:focus,.mfield input[type=number]:focus{border-color:var(--accent-strong)}
+.mfield input[type=color]{width:100%;height:32px;background:var(--bg-elev2);border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px}
+.avatar-preview{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.season-tabs{display:flex;gap:4px;margin:14px 0 10px;flex-wrap:wrap;border-bottom:1px solid var(--border-subtle);padding-bottom:10px}
+.season-tab{padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted)}
+.season-tab.on{background:var(--accent-bg-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.season-tab.hasdata::after{content:'●';color:var(--green-text);font-size:8px;margin-left:4px;vertical-align:middle}
+.null-toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-heading);margin-bottom:12px;cursor:pointer}
+.stint-box{border:1px solid var(--border-subtle);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:var(--bg-elev2)}
+.stint-box-head{display:flex;gap:8px;margin-bottom:8px}
+.stint-box-head select{flex:1}
+.stint-box-head input{flex:1}
+.mini-btn{padding:3px 9px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg-subtle);color:var(--text-muted);white-space:nowrap}
+.mini-btn:hover{border-color:var(--danger);color:var(--danger)}
+.mini-btn.add{border-color:var(--green);color:var(--green-text)}
+.mini-btn.add:hover{background:var(--green-bg-soft)}
+.comp-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.comp-row input[type=text]{flex:2}
+.comp-row input[type=number]{flex:1;width:0;min-width:48px}
+.comp-row label.wchk{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-muted);white-space:nowrap}
+.warn-note{font-size:11px;color:var(--warn);margin-top:4px}
+.modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border-subtle)}
+.mbtn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.mbtn.primary{background:var(--green);color:#fff}
+.mbtn.primary:hover{background:var(--green-hover)}
+.mbtn.secondary{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
+.mbtn.secondary:hover{border-color:var(--text-muted);color:var(--text-heading)}
+.mbtn.danger{background:transparent;border:1px solid var(--danger-bg-soft);color:var(--danger)}
+.mbtn.danger:hover{background:var(--danger-bg-soft)}
+</style>
+</head>
+<body class="">
+<div class="wrap">
+  <h1>⚽ 해외파 한국 선수 기록</h1>
+  <p class="sub">UEFA TOP 10 리그 활약 선수 · 시즌별 · 대회별 완전 기록</p>
+
+  <div class="edit-toolbar">
+    <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="테마 전환">☀️</button>
+    <button class="edit-toggle-btn" id="edit-toggle-btn" onclick="toggleEditMode()">✏️ 편집 모드</button>
+    <button class="save-file-btn" id="save-file-btn" onclick="saveToFile()">💾 파일에 저장</button>
+    <span class="edit-status" id="edit-status"></span>
+  </div>
+
+  <div class="main-tabs">
+    <button class="main-tab on" onclick="switchMain(this,'players')">🇰🇷 선수 기록</button>
+    <button class="main-tab" onclick="switchMain(this,'coef')">📊 UEFA 리그 계수</button>
+  </div>
+
+  <div id="sec-players">
+    <div class="filter-box">
+      <h3>📅 시즌 선택</h3>
+      <div class="sbtn-row">
+        <button class="sbtn cur on" onclick="setSingle(this,'2627')">26/27 ★진행 중</button>
+        <button class="sbtn" onclick="setSingle(this,'2526')">25/26</button>
+        <button class="sbtn" onclick="setSingle(this,'2425')">24/25</button>
+        <button class="sbtn" onclick="setSingle(this,'2324')">23/24</button>
+        <button class="sbtn" onclick="setSingle(this,'2223')">22/23</button>
+        <button class="sbtn" onclick="setSingle(this,'2122')">21/22</button>
+        <button class="sbtn" onclick="toggleRange(this)">📊 기간 합산</button>
+      </div>
+      <div id="range-ui" style="display: none;">
+        <div class="range-row">
+          <label>시작</label>
+          <select id="from"><option value="2122">21/22</option><option value="2223">22/23</option><option value="2324">23/24</option><option value="2425">24/25</option><option value="2526">25/26</option><option value="2627">26/27</option></select>
+          <span style="color:#484f58">~</span>
+          <label>끝</label>
+          <select id="to"><option value="2122">21/22</option><option value="2223">22/23</option><option value="2324">23/24</option><option value="2425">24/25</option><option value="2526">25/26</option><option value="2627" selected="">26/27</option></select>
+          <button class="apply-btn" onclick="applyRange()">적용</button>
+        </div>
+      </div>
+      <p class="fhint">★ 26/27 진행 중 — 리그별로 개막 여부가 달라 이현주·이한범·황인범은 실전 기록 반영, 나머지 확정 선수는 소속만 표시 (이적시장 9월 1일 마감)<br>
+        미확정: 황희찬(울버햄프턴 이탈, 행선지 미정) · 25/26은 최종 기록 (2026년 8월 검증)<br>
+        UEFA TOP 10 리그에서 실제 뛴 선수만 표시<br>
+        ※ 시즌 중 이적한 선수는 뛴 리그 탭마다 모두 나오며, 각 탭에서는 <b>그 소속팀 구간의 기록만</b> 집계됩니다</p>
+    </div>
+
+    <div id="mode-label" class="mode-label">📅 26/27 시즌 진행 중</div>
+    <div class="summary">
+      <div class="sc"><div class="v" id="tp">12</div><div class="l">활동 선수</div></div>
+      <div class="sc"><div class="v" id="tg">1</div><div class="l">총 득점(전체대회)</div></div>
+      <div class="sc"><div class="v" id="ta">2</div><div class="l">총 어시스트</div></div>
+      <div class="sc"><div class="v" id="tapp">11</div><div class="l">총 출전</div></div>
+    </div>
+
+    <div class="league-tabs" id="league-tabs"><button class="ltab on" onclick="setLeagueTab(this,'all')" style="background:#1f3e5a;border-color:transparent;color:#fff"><span class="dot" style="background:#58a6ff"></span>전체(12)</button><button class="ltab" onclick="setLeagueTab(this,'라리가')"><span class="dot" style="background:#f08007"></span>라리가(1)</button><button class="ltab" onclick="setLeagueTab(this,'분데스리가')"><span class="dot" style="background:#d4011d"></span>분데스리가(5)</button><button class="ltab" onclick="setLeagueTab(this,'프리메이라리가')"><span class="dot" style="background:#10b981"></span>프리메이라리가(2)</button><button class="ltab" onclick="setLeagueTab(this,'주필러프로리그')"><span class="dot" style="background:#f59e0b"></span>주필러프로리그(2)</button><button class="ltab" onclick="setLeagueTab(this,'쉬페르리그')"><span class="dot" style="background:#ef4444"></span>쉬페르리그(2)</button></div>
+    <button class="add-player-btn" onclick="openEditor(null)">+ 새 선수 추가</button>
+    <div id="content"><p class="slbl"><span class="slbl-dot" style="background:#f08007"></span>라리가 · 1명 <span style="color:#484f58;font-size:10px">UEFA 3위</span></p><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#93c5fd;color:#0c2356">이</div>
+      <div class="ci">
+        <div class="cn">이강인</div>
+        <div class="cen">Lee Kang-in</div>
+        <div class="cm">아틀레티코 마드리드
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#fbbf24;color:#3d2503">라리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(2)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#fbbf24"></span>
+        <span class="comp-lbl">라리가</span>
+        
+        </div></td>
+        <td class="num">1</td>
+        <td class="num ">1</td>
+        <td class="num">0</td>
+        <td class="num">1</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">1</td>
+    <td class="num ">1</td>
+    <td class="num">0</td>
+    <td class="num">1</td></tr></tbody>
+    </table></div><p class="slbl"><span class="slbl-dot" style="background:#d4011d"></span>분데스리가 · 5명 <span style="color:#484f58;font-size:10px">UEFA 4위</span></p><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#fca5a5;color:#3a1c1c">김</div>
+      <div class="ci">
+        <div class="cn">김민재</div>
+        <div class="cen">Kim Min-jae</div>
+        <div class="cm">바이에른 뮌헨
+          <span class="bdg bp">CB</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">분데스리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(3)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#6ee7b7;color:#1a3a2a">이</div>
+      <div class="ci">
+        <div class="cn">이재성</div>
+        <div class="cen">Lee Jae-sung</div>
+        <div class="cm">마인츠 05
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">분데스리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(4)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#7dd3fc;color:#1a2a3a">정</div>
+      <div class="ci">
+        <div class="cn">정우영</div>
+        <div class="cen">Jeong Woo-yeong</div>
+        <div class="cm">유니온 베를린
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">분데스리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(5)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#86efac;color:#1a3d08">옌</div>
+      <div class="ci">
+        <div class="cn">옌스</div>
+        <div class="cen">Jens Castrop</div>
+        <div class="cm">보루시아 묀헨글라트바흐 ⚠️어깨수술
+          <span class="bdg bp">MF/WB</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">분데스리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(6)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#fde68a;color:#3a2e00">홍</div>
+      <div class="ci">
+        <div class="cn">홍현석</div>
+        <div class="cen">Hong Hyeon-seok</div>
+        <div class="cm">마인츠 05
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">분데스리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(8)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div><p class="slbl"><span class="slbl-dot" style="background:#10b981"></span>프리메이라리가 · 2명 <span style="color:#484f58;font-size:10px">UEFA 6위</span></p><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#c4b5fd;color:#2a1a3a">황</div>
+      <div class="ci">
+        <div class="cn">황인범</div>
+        <div class="cen">Hwang In-beom</div>
+        <div class="cm">FC 포르투
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#86efac;color:#0a2e1a">프리메이라리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(7)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#34d399"></span>
+        <span class="comp-lbl">프리메이라리가</span>
+        
+        </div></td>
+        <td class="num">1</td>
+        <td class="num ">0</td>
+        <td class="num">1</td>
+        <td class="num">1</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">1</td>
+    <td class="num ">0</td>
+    <td class="num">1</td>
+    <td class="num">1</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#e9d5ff;color:#2a0a3a">이</div>
+      <div class="ci">
+        <div class="cn">이현주</div>
+        <div class="cen">Lee Hyun-ju</div>
+        <div class="cm">FC 아로카
+          <span class="bdg bp">MF</span>
+          <span class="bdg" style="background:#86efac;color:#0a2e1a">프리메이라리가</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(12)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#34d399"></span>
+        <span class="comp-lbl">프리메이라리가</span>
+        
+        </div></td>
+        <td class="num">2</td>
+        <td class="num ">0</td>
+        <td class="num">1</td>
+        <td class="num">1</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">2</td>
+    <td class="num ">0</td>
+    <td class="num">1</td>
+    <td class="num">1</td></tr></tbody>
+    </table></div><p class="slbl"><span class="slbl-dot" style="background:#f59e0b"></span>주필러프로리그 · 2명 <span style="color:#484f58;font-size:10px">UEFA 8위</span></p><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#7dd3fc;color:#0a1f33">이</div>
+      <div class="ci">
+        <div class="cn">이한범</div>
+        <div class="cen">Lee Han-beom</div>
+        <div class="cm">클럽 브뤼헤
+          <span class="bdg bp">CB</span>
+          <span class="bdg" style="background:#fde68a;color:#3a2e00">주필러프로리그</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(13)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#fde68a"></span>
+        <span class="comp-lbl">주필러프로리그</span>
+        
+        </div></td>
+        <td class="num">1</td>
+        <td class="num ">0</td>
+        <td class="num">0</td>
+        <td class="num">0</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">1</td>
+    <td class="num ">0</td>
+    <td class="num">0</td>
+    <td class="num">0</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#d8b4fe;color:#241a40">양</div>
+      <div class="ci">
+        <div class="cn">양민혁</div>
+        <div class="cen">Yang Min-hyeok</div>
+        <div class="cm">KVC 베스테를로(임대)
+          <span class="bdg bp">FW</span>
+          <span class="bdg" style="background:#fde68a;color:#3a2e00">주필러프로리그</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(14)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#fde68a"></span>
+        <span class="comp-lbl">주필러프로리그</span>
+        
+        </div></td>
+        <td class="num">1</td>
+        <td class="num ">0</td>
+        <td class="num">0</td>
+        <td class="num">0</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">1</td>
+    <td class="num ">0</td>
+    <td class="num">0</td>
+    <td class="num">0</td></tr></tbody>
+    </table></div><p class="slbl"><span class="slbl-dot" style="background:#ef4444"></span>쉬페르리그 · 2명 <span style="color:#484f58;font-size:10px">UEFA 9위</span></p><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#fca5a5;color:#3d0008">오</div>
+      <div class="ci">
+        <div class="cn">오현규</div>
+        <div class="cen">Oh Hyeon-gyu</div>
+        <div class="cm">베식타스 JK
+          <span class="bdg bp">FW</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">쉬페르리그</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(9)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#fca5a5"></span>
+        <span class="comp-lbl">쉬페르리그</span>
+        
+        </div></td>
+        <td class="num">1</td>
+        <td class="num ">0</td>
+        <td class="num">0</td>
+        <td class="num">0</td></tr><tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:#fb923c"></span>
+        <span class="comp-lbl">유로파리그</span>
+        
+        </div></td>
+        <td class="num">4</td>
+        <td class="num ">0</td>
+        <td class="num">0</td>
+        <td class="num">0</td></tr><tr class="total-row"><td><strong>합계</strong></td>
+    <td class="num">5</td>
+    <td class="num ">0</td>
+    <td class="num">0</td>
+    <td class="num">0</td></tr></tbody>
+    </table></div><div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:#c4b5fd;color:#2a1a3a">황</div>
+      <div class="ci">
+        <div class="cn">황의조</div>
+        <div class="cen">Hwang Ui-jo</div>
+        <div class="cm">알란야스포르
+          <span class="bdg bp">FW</span>
+          <span class="bdg" style="background:#fca5a5;color:#3d0008">쉬페르리그</span>
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(10)">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody><tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr></tbody>
+    </table></div></div>
+    <p class="note">
+      출처: Soccerway · FBref · FotMob · 나무위키<br>
+      최신 수정: 2026년 8월 18일
+    </p>
+  </div>
+
+  <div id="sec-coef" style="display:none">
+    <div class="coef-intro">
+      <b>UEFA 협회 계수(Association Coefficient)란?</b><br>
+      각 국가 리그 소속 클럽들이 UEFA 챔피언스리그·유로파리그·컨퍼런스리그에서 거둔 성적을 바탕으로 산출하는 점수예요.
+      최근 5시즌 결과를 합산하며, 이 순위에 따라 각 나라가 유럽 대회에 보낼 수 있는 팀 수가 결정돼요.
+      아래는 <b>2025-26 시즌 종료 시점의 확정 계수 (2021-22 ~ 2025-26 합산)</b>로, 2027-28 시즌 기본 배정에 쓰이는 표예요.
+      이 계수 TOP 10 리그에서 활약하는 한국 선수를 추적하고 있어요.<br>
+      <span style="color:#484f58">
+        배정 경로는 두 갈래예요. <b>기본 팀 수</b>는 5년 합산 계수를 <b>2년 전</b> 시점에서 끊어 정하고(26/27 배정은 2020-21~2024-25 표로 이미 확정),
+        여기에 <b>유러피언 퍼포먼스 스팟</b>으로 <b>직전 한 시즌</b> 성적이 가장 좋은 2개 협회에 챔피언스리그 한 장씩을 더 줘요.
+        26/27은 25/26 성적으로 잉글랜드·스페인이 받아 리버풀(PL 5위)·레알 베티스(라리가 5위)가 진출했어요.<br>
+        진행 중인 2022-23~2026-27 표는 26/27분이 거의 비어 순위가 매 라운드 요동치므로, 이 화면은 <b>값이 고정된 확정 계수</b>를 씁니다.
+      </span><br>
+      출처: <a href="https://en.wikipedia.org/wiki/2027%E2%80%9328_UEFA_Champions_League" target="_blank" style="color:#58a6ff">2027-28 UCL 배정표</a> · <a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_UEFA_Champions_League" target="_blank" style="color:#58a6ff">2026-27 UCL 배정 규정</a> · <a href="https://www.uefa.com/nationalassociations/uefarankings/country/" target="_blank" style="color:#58a6ff">UEFA 공식</a>
+    </div>
+    <div class="coef-grid" id="coef-grid"></div>
+    <p class="note">2025-26 시즌 종료 확정 계수 (2026년 8월 갱신) · TOP 10 구성·순서는 4월 30일 잠정치와 동일<br>
+      시즌 종료 구간에 잉글랜드 +1.555 · 독일 +0.571 · 프랑스 +0.500 · 스페인 +0.312 상승, 나머지 6개국은 변동 없음<br>
+      ※ 11위 그리스(48.412)가 10위 체코(48.525)를 0.113 차로 추격 — 다음 갱신 때 TOP 10 경계 확인 필요</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script id="mainscript">
+(function(){
+  const saved=localStorage.getItem('euko-theme');
+  const theme=saved==='dark'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',theme);
+  const btn=document.getElementById('theme-toggle-btn');
+  if(btn) btn.textContent=theme==='light'?'☀️':'🌙';
+})();
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
+  const next=cur==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('euko-theme',next);
+  document.getElementById('theme-toggle-btn').textContent=next==='light'?'☀️':'🌙';
+  // 배지/아바타/계수 순위칩은 인라인 style이라 테마 전환 시 다시 그려야 반영된다
+  render();
+  renderCoef();
+}
+
+const UEFA_LEAGUES=[
+  {rank:1,  name:'프리미어리그',  country:'잉글랜드', pts:119.519,color:'#9b1fe8',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',key:'프리미어리그',           clubs:'아스날, 맨시티, 리버풀 등'},
+  {rank:2,  name:'세리에A',       country:'이탈리아', pts:99.946, color:'#1a56db',flag:'🇮🇹',key:'세리에A',      clubs:'인테르, 밀란, 유벤투스 등'},
+  {rank:3,  name:'라리가',        country:'스페인',   pts:97.046, color:'#f08007',flag:'🇪🇸',key:'라리가',       clubs:'레알, 바르샤, 아틀레티코 등'},
+  {rank:4,  name:'분데스리가',    country:'독일',     pts:92.902, color:'#d4011d',flag:'🇩🇪',key:'분데스리가',   clubs:'바이에른, 도르트문트, 레버쿠젠 등'},
+  {rank:5,  name:'리그앙',        country:'프랑스',   pts:83.498, color:'#3b82f6',flag:'🇫🇷',key:'리그앙',       clubs:'PSG, 모나코, 마르세유 등'},
+  {rank:6,  name:'프리메이라리가',country:'포르투갈', pts:73.166, color:'#10b981',flag:'🇵🇹',key:'프리메이라리가',clubs:'벤피카, 포르투, 스포르팅 등'},
+  {rank:7,  name:'에레디비지에',  country:'네덜란드', pts:67.929, color:'#f97316',flag:'🇳🇱',key:'에레디비지에', clubs:'아약스, PSV, 페예노르트 등'},
+  {rank:8,  name:'주필러프로리그',country:'벨기에',   pts:62.250, color:'#f59e0b',flag:'🇧🇪',key:'주필러프로리그',clubs:'클럽브뤼헤, 겐트, 안더레흐트 등'},
+  {rank:9,  name:'쉬페르리그',    country:'튀르키예', pts:51.875, color:'#ef4444',flag:'🇹🇷',key:'쉬페르리그',   clubs:'갈라타사라이, 페네르바체, 베식타스 등'},
+  {rank:10, name:'체코리가',      country:'체코',     pts:48.525, color:'#8b5cf6',flag:'🇨🇿',key:'체코리가',     clubs:'슬라비아 프라하, 스파르타 등'},
+];
+
+const COUNTRY_COLOR={
+  '잉글랜드': '#c084fc',
+  '독일':     '#f87171',
+  '프랑스':   '#60a5fa',
+  '스페인':   '#fbbf24',
+  '이탈리아': '#93c5fd',
+  '네덜란드': '#fb923c',
+  '포르투갈': '#34d399',
+  '벨기에':   '#fde68a',
+  '튀르키예': '#fca5a5',
+  '체코':     '#c4b5fd',
+};
+
+const COMP_COUNTRY={
+  '프리미어리그':'잉글랜드','FA컵':'잉글랜드','EFL컵':'잉글랜드',
+  '분데스리가':'독일','DFB포칼':'독일','슈퍼컵':'독일',
+  '리그앙':'프랑스','쿠프드프랑스':'프랑스','트로페데샹피옹':'프랑스',
+  '라리가':'스페인','코파델레이':'스페인',
+  '세리에A':'이탈리아','코파이탈리아':'이탈리아',
+  '에레디비지에':'네덜란드','KNVB컵':'네덜란드',
+  '프리메이라리가':'포르투갈','타사드포르투갈':'포르투갈',
+  '주필러프로리그':'벨기에','벨기에컵':'벨기에',
+  '쉬페르리그':'튀르키예','튀르키예컵':'튀르키예',
+  '체코리가':'체코',
+};
+
+const INTL_COLOR={
+  '챔피언스리그':'#facc15','유로파리그':'#fb923c','컨퍼런스리그':'#86efac',
+  'UEFA슈퍼컵':'#fde68a','FIFA클럽월드컵':'#a78bfa','FIFA인터컨티넨탈컵':'#67e8f9',
+};
+
+function compColor(name){
+  if(INTL_COLOR[name]) return INTL_COLOR[name];
+  const country=COMP_COUNTRY[name];
+  if(country && COUNTRY_COLOR[country]) return COUNTRY_COLOR[country];
+  return '#8b949e';
+}
+// 배지/아바타는 "짙은 배경 + 밝은 글자" 조합으로 만들어져 다크에 맞춰져 있다.
+// 라이트에서는 배경↔글자를 맞바꿔 밝은 배경+짙은 글자로 만든다 — 색감은 유지하면서 대비만 반전.
+function isLightTheme(){ return document.documentElement.getAttribute('data-theme')==='light'; }
+function chip(bg,tc){ return isLightTheme()?{bg:tc,tc:bg}:{bg,tc}; }
+
+const LC={
+  '프리미어리그':            {bg:'#2a1040',tc:'#c084fc'},
+  '세리에A':        {bg:'#0c2a5a',tc:'#93c5fd'},
+  '라리가':         {bg:'#3d2503',tc:'#fbbf24'},
+  '분데스리가':     {bg:'#3d0008',tc:'#fca5a5'},
+  '에레디비지에':   {bg:'#3a1a00',tc:'#fdba74'},
+  '리그앙':         {bg:'#0c2356',tc:'#93c5fd'},
+  '프리메이라리가': {bg:'#0a2e1a',tc:'#86efac'},
+  '주필러프로리그': {bg:'#3a2e00',tc:'#fde68a'},
+  '쉬페르리그':     {bg:'#3d0008',tc:'#fca5a5'},
+  '체코리가':       {bg:'#2a1a3a',tc:'#c4b5fd'},
+};
+
+const SEASONS=['2122','2223','2324','2425','2526','2627'];
+const SL={'2122':'21/22','2223':'22/23','2324':'23/24','2425':'24/25','2526':'25/26','2627':'26/27'};
+const CUR='2627';           // 현재 진행 중인 시즌
+const ASOF={'2627':'이 리그는 아직 확정된 한국 선수가 없습니다 · 이적시장 9월 1일 마감 전까지 유동적'};
+
+// 각 시즌은 stints(소속팀 구간) 배열. 시즌 중 이적하면 구간이 2개 이상이 되고,
+// 리그 탭 필터·집계는 전부 이 구간 단위로 이뤄진다.
+const PLAYERS=[
+  {name:'손흥민',en:'Son Heung-min',pos:'FW',ava:{bg:'#1c3a5a',c:'#93c5fd'},seasons:{
+    '2122':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:35,goals:23,assists:7},{name:'컨퍼런스리그',apps:4,goals:1,assists:1},{name:'FA컵',apps:2,goals:0,assists:0},{name:'EFL컵',apps:4,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:36,goals:10,assists:6},{name:'챔피언스리그',apps:8,goals:2,assists:0},{name:'FA컵',apps:3,goals:2,assists:0}]}]},
+    '2324':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:35,goals:17,assists:10},{name:'EFL컵',apps:1,goals:0,assists:0}]}]},
+    '2425':{stints:[{league:'프리미어리그',team:'토트넘 홋스퍼',comps:[{name:'프리미어리그',apps:30,goals:7,assists:9},{name:'유로파리그',apps:10,goals:3,assists:1,win:true},{name:'FA컵',apps:2,goals:0,assists:1},{name:'EFL컵',apps:4,goals:1,assists:0}]}]},
+    '2526':null,
+    '2627':null,
+  }},
+  {name:'황희찬',en:'Hwang Hee-chan',pos:'FW',ava:{bg:'#3a2a1a',c:'#fcd34d'},seasons:{
+    '2122':{stints:[{league:'분데스리가',team:'RB 라이프치히',comps:[{name:'분데스리가',apps:2,goals:0,assists:0},{name:'DFB포칼',apps:1,goals:0,assists:1}]},{league:'프리미어리그',team:'울버햄프턴(임대)',comps:[{name:'프리미어리그',apps:30,goals:5,assists:1},{name:'EFL컵',apps:1,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:27,goals:3,assists:1},{name:'FA컵',apps:1,goals:1,assists:0},{name:'EFL컵',apps:4,goals:0,assists:1}]}]},
+    '2324':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:29,goals:12,assists:3},{name:'FA컵',apps:1,goals:0,assists:0},{name:'EFL컵',apps:1,goals:1,assists:0}]}]},
+    '2425':{stints:[{league:'프리미어리그',team:'울버햄프턴',comps:[{name:'프리미어리그',apps:21,goals:2,assists:0},{name:'FA컵',apps:2,goals:0,assists:1},{name:'EFL컵',apps:2,goals:0,assists:0}]}]},
+    '2526':{stints:[{league:'프리미어리그',team:'울버햄프턴 ⚠️강등',comps:[{name:'프리미어리그',apps:26,goals:2,assists:2},{name:'FA컵',apps:2,goals:1,assists:1},{name:'EFL컵',apps:3,goals:0,assists:1}]}]},
+    '2627':null,
+  }},
+  {name:'이강인',en:'Lee Kang-in',pos:'MF',ava:{bg:'#0c2356',c:'#93c5fd'},seasons:{
+    '2122':{stints:[{league:'라리가',team:'RCD 마요르카',comps:[{name:'라리가',apps:30,goals:1,assists:2},{name:'코파델레이',apps:4,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'라리가',team:'RCD 마요르카',comps:[{name:'라리가',apps:36,goals:6,assists:6},{name:'코파델레이',apps:3,goals:0,assists:0}]}]},
+    '2324':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:23,goals:3,assists:4,win:true},{name:'챔피언스리그',apps:9,goals:1,assists:1},{name:'쿠프드프랑스',apps:3,goals:0,assists:0,win:true},{name:'트로페데샹피옹',apps:1,goals:1,assists:0,win:true}]}]},
+    '2425':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:30,goals:6,assists:6,win:true},{name:'챔피언스리그',apps:11,goals:0,assists:0,win:true},{name:'쿠프드프랑스',apps:3,goals:0,assists:0,win:true},{name:'트로페데샹피옹',apps:1,goals:0,assists:0,win:true}]}]},
+    '2526':{stints:[{league:'리그앙',team:'파리 생제르맹(PSG)',comps:[{name:'리그앙',apps:27,goals:3,assists:4,win:true},{name:'챔피언스리그',apps:10,goals:0,assists:1},{name:'UEFA슈퍼컵',apps:1,goals:1,assists:0,win:true},{name:'FIFA인터컨티넨탈컵',apps:1,goals:0,assists:0,win:true},{name:'FIFA클럽월드컵',apps:4,goals:1,assists:0}]}]},
+    '2627':{stints:[{league:'라리가',team:'아틀레티코 마드리드',comps:[{name:'라리가',apps:1,goals:1,assists:0}]}]},
+  }},
+  {name:'김민재',en:'Kim Min-jae',pos:'CB',ava:{bg:'#3a1c1c',c:'#fca5a5'},seasons:{
+    '2122':{stints:[{league:'쉬페르리그',team:'페네르바체',comps:[{name:'쉬페르리그',apps:31,goals:1,assists:0},{name:'튀르키예컵',apps:1,goals:0,assists:0},{name:'유로파리그',apps:6,goals:0,assists:0},{name:'컨퍼런스리그',apps:2,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'세리에A',team:'SSC 나폴리',comps:[{name:'세리에A',apps:35,goals:2,assists:2,win:true},{name:'챔피언스리그',apps:9,goals:0,assists:0},{name:'코파이탈리아',apps:1,goals:0,assists:0}]}]},
+    '2324':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:25,goals:1,assists:1},{name:'챔피언스리그',apps:9,goals:0,assists:0},{name:'DFB포칼',apps:1,goals:0,assists:0},{name:'슈퍼컵',apps:1,goals:0,assists:0}]}]},
+    '2425':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:27,goals:2,assists:0,win:true},{name:'챔피언스리그',apps:13,goals:1,assists:0},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
+    '2526':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[{name:'분데스리가',apps:25,goals:1,assists:1,win:true},{name:'챔피언스리그',apps:8,goals:0,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0,win:true},{name:'슈퍼컵',apps:1,goals:0,assists:0,win:true}]}]},
+    '2627':{stints:[{league:'분데스리가',team:'바이에른 뮌헨',comps:[]}]},
+  }},
+  {name:'이재성',en:'Lee Jae-sung',pos:'MF',ava:{bg:'#1a3a2a',c:'#6ee7b7'},seasons:{
+    '2122':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:27,goals:4,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:34,goals:7,assists:4},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
+    '2324':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:29,goals:6,assists:3},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
+    '2425':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:33,goals:7,assists:6},{name:'DFB포칼',apps:1,goals:0,assists:1}]}]},
+    '2526':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:28,goals:4,assists:2},{name:'DFB포칼',apps:2,goals:0,assists:0},{name:'컨퍼런스리그',apps:9,goals:2,assists:3}]}]},
+    '2627':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[]}]},
+  }},
+  {name:'정우영',en:'Jeong Woo-yeong',pos:'MF',ava:{bg:'#1a2a3a',c:'#7dd3fc'},seasons:{
+    '2122':{stints:[{league:'분데스리가',team:'프라이부르크',comps:[{name:'분데스리가',apps:32,goals:5,assists:2},{name:'DFB포칼',apps:5,goals:0,assists:0}]}]},
+    '2223':{stints:[{league:'분데스리가',team:'프라이부르크',comps:[{name:'분데스리가',apps:26,goals:1,assists:1},{name:'유로파리그',apps:5,goals:1,assists:1},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
+    '2324':{stints:[{league:'분데스리가',team:'슈투트가르트',comps:[{name:'분데스리가',apps:26,goals:2,assists:3},{name:'DFB포칼',apps:3,goals:0,assists:0}]}]},
+    '2425':{stints:[{league:'분데스리가',team:'유니온 베를린(임대)',comps:[{name:'분데스리가',apps:23,goals:3,assists:2}]}]},
+    '2526':{stints:[{league:'분데스리가',team:'유니온 베를린',comps:[{name:'분데스리가',apps:28,goals:4,assists:1},{name:'DFB포칼',apps:3,goals:1,assists:0}]}]},
+    '2627':{stints:[{league:'분데스리가',team:'유니온 베를린',comps:[]}]},
+  }},
+  {name:'옌스',en:'Jens Castrop',pos:'MF/WB',ava:{bg:'#1a3d08',c:'#86efac'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':null,
+    '2526':{stints:[{league:'분데스리가',team:'보루시아 묀헨글라트바흐',comps:[{name:'분데스리가',apps:26,goals:3,assists:1},{name:'DFB포칼',apps:2,goals:0,assists:0}]}]},
+    '2627':{stints:[{league:'분데스리가',team:'보루시아 묀헨글라트바흐 ⚠️어깨수술',comps:[]}]},
+  }},
+  {name:'황인범',en:'Hwang In-beom',pos:'MF',ava:{bg:'#2a1a3a',c:'#c4b5fd'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':{stints:[{league:'에레디비지에',team:'페예노르트',comps:[{name:'에레디비지에',apps:20,goals:2,assists:4},{name:'챔피언스리그',apps:6,goals:1,assists:1},{name:'KNVB컵',apps:2,goals:0,assists:0}]}]},
+    '2526':{stints:[{league:'에레디비지에',team:'페예노르트',comps:[{name:'에레디비지에',apps:17,goals:1,assists:3},{name:'챔피언스리그',apps:2,goals:0,assists:1},{name:'유로파리그',apps:4,goals:0,assists:0},{name:'KNVB컵',apps:1,goals:0,assists:0}]}]},
+    '2627':{stints:[{league:'프리메이라리가',team:'FC 포르투',comps:[{name:'프리메이라리가',apps:1,goals:0,assists:1}]}]},
+  }},
+  {name:'홍현석',en:'Hong Hyeon-seok',pos:'MF',ava:{bg:'#3a2e00',c:'#fde68a'},seasons:{
+    '2122':null,
+    '2223':{stints:[{league:'주필러프로리그',team:'KAA 헨트',comps:[{name:'주필러프로리그',apps:40,goals:7,assists:7},{name:'컨퍼런스리그',apps:11,goals:1,assists:3}]}]},
+    '2324':{stints:[{league:'주필러프로리그',team:'KAA 헨트',comps:[{name:'주필러프로리그',apps:32,goals:5,assists:7},{name:'유로파리그',apps:6,goals:0,assists:2}]}]},
+    '2425':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[{name:'분데스리가',apps:23,goals:1,assists:1},{name:'DFB포칼',apps:1,goals:0,assists:0}]}]},
+    '2526':{stints:[{league:'리그앙',team:'FC 낭트',comps:[{name:'리그앙',apps:6,goals:0,assists:0}]},{league:'주필러프로리그',team:'KAA 헨트(임대)',comps:[{name:'주필러프로리그',apps:19,goals:1,assists:0}]}]},
+    '2627':{stints:[{league:'분데스리가',team:'마인츠 05',comps:[]}]},
+  }},
+  {name:'오현규',en:'Oh Hyeon-gyu',pos:'FW',ava:{bg:'#3d0008',c:'#fca5a5'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':{stints:[{league:'주필러프로리그',team:'KRC 헹크',comps:[{name:'주필러프로리그',apps:33,goals:9,assists:1},{name:'벨기에컵',apps:5,goals:3,assists:0}]}]},
+    '2526':{stints:[{league:'주필러프로리그',team:'KRC 헹크',comps:[{name:'주필러프로리그',apps:20,goals:6,assists:3},{name:'벨기에컵',apps:2,goals:0,assists:0},{name:'유로파리그',apps:10,goals:4,assists:0}]},{league:'쉬페르리그',team:'베식타스 JK',comps:[{name:'쉬페르리그',apps:13,goals:6,assists:1},{name:'튀르키예컵',apps:3,goals:2,assists:1}]}]},
+    '2627':{stints:[{league:'쉬페르리그',team:'베식타스 JK',comps:[{name:'쉬페르리그',apps:1,goals:0,assists:0},{name:'유로파리그',apps:4,goals:0,assists:0}]}]},
+  }},
+  {name:'황의조',en:'Hwang Ui-jo',pos:'FW',ava:{bg:'#2a1a3a',c:'#c4b5fd'},seasons:{
+    '2122':{stints:[{league:'리그앙',team:'지롱댕 드 보르도',comps:[{name:'리그앙',apps:32,goals:11,assists:2},{name:'쿠프드프랑스',apps:1,goals:0,assists:0}]}]},
+    '2223':null,
+    '2324':{stints:[{league:'쉬페르리그',team:'알란야스포르(임대)',comps:[{name:'쉬페르리그',apps:8,goals:1,assists:0}]}]},
+    '2425':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[{name:'쉬페르리그',apps:30,goals:7,assists:1},{name:'튀르키예컵',apps:2,goals:0,assists:0}]}]},
+    '2526':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[{name:'쉬페르리그',apps:33,goals:4,assists:6},{name:'튀르키예컵',apps:5,goals:0,assists:0}]}]},
+    '2627':{stints:[{league:'쉬페르리그',team:'알란야스포르',comps:[]}]},
+  }},
+  {name:'조진호',en:'Jo Jin-ho',pos:'MF',ava:{bg:'#0a2e3a',c:'#67e8f9'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':null,
+    '2526':{stints:[{league:'쉬페르리그',team:'코냐스포르',comps:[{name:'쉬페르리그',apps:20,goals:1,assists:1},{name:'튀르키예컵',apps:5,goals:0,assists:1}]}]},
+    '2627':null,
+  }},
+  {name:'이현주',en:'Lee Hyun-ju',pos:'MF',ava:{bg:'#2a0a3a',c:'#e9d5ff'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':null,
+    '2526':{stints:[{league:'프리메이라리가',team:'FC 아로카',comps:[{name:'프리메이라리가',apps:30,goals:7,assists:3},{name:'타사드포르투갈',apps:2,goals:0,assists:0}]}]},
+    '2627':{stints:[{league:'프리메이라리가',team:'FC 아로카',comps:[{name:'프리메이라리가',apps:2,goals:0,assists:1}]}]},
+  }},
+  {name:'이한범',en:'Lee Han-beom',pos:'CB',ava:{bg:'#0a1f33',c:'#7dd3fc'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':null,
+    '2526':null,
+    '2627':{stints:[{league:'주필러프로리그',team:'클럽 브뤼헤',comps:[{name:'주필러프로리그',apps:1,goals:0,assists:0}]}]},
+  }},
+  {name:'양민혁',en:'Yang Min-hyeok',pos:'FW',ava:{bg:'#241a40',c:'#d8b4fe'},seasons:{
+    '2122':null,
+    '2223':null,
+    '2324':null,
+    '2425':null,
+    '2526':null,
+    '2627':{stints:[{league:'주필러프로리그',team:'KVC 베스테를로(임대)',comps:[{name:'주필러프로리그',apps:1,goals:0,assists:0}]}]},
+  }},
+];
+
+let mode='single',selS='2627',rfrom='2122',rto='2627',curTab='all';
+
+function switchMain(el,sec){
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('sec-players').style.display=sec==='players'?'':'none';
+  document.getElementById('sec-coef').style.display=sec==='coef'?'':'none';
+  if(sec==='coef') renderCoef();
+}
+function setSingle(el,s){
+  mode='single';selS=s;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('range-ui').style.display='none';
+  render();
+}
+function toggleRange(el){
+  mode='range';
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('range-ui').style.display='block';
+  applyRange();
+}
+function applyRange(){
+  rfrom=document.getElementById('from').value;
+  rto=document.getElementById('to').value;
+  if(SEASONS.indexOf(rfrom)>SEASONS.indexOf(rto)){[rfrom,rto]=[rto,rfrom];document.getElementById('from').value=rfrom;document.getElementById('to').value=rto;}
+  render();
+}
+function setLeagueTab(el,lg){
+  curTab=lg;buildLeagueTabs();renderCards();
+}
+
+function curRange(){
+  return mode==='single'?[selS]:SEASONS.slice(SEASONS.indexOf(rfrom),SEASONS.indexOf(rto)+1);
+}
+// league를 주면 그 리그 구간만, 안 주면 전 구간
+function stintsOf(p,sid,league){
+  const s=p.seasons[sid];
+  if(!s||!s.stints) return [];
+  return (league&&league!=='all')?s.stints.filter(st=>st.league===league):s.stints;
+}
+// 리그 탭 카운트용 — curTab과 무관하게 그 선수가 뛴 리그 전부
+function leaguesOfPlayer(p){
+  const out=[];
+  for(const sid of curRange())
+    for(const st of stintsOf(p,sid))
+      if(!out.includes(st.league)) out.push(st.league);
+  return out;
+}
+function sumComps(comps,k){return comps.reduce((a,c)=>a+c[k],0);}
+
+function getPlayerData(p){
+  const picked=[];
+  for(const sid of curRange()){
+    const sts=stintsOf(p,sid,curTab);
+    if(sts.length) picked.push({sid,sts});
+  }
+  if(!picked.length) return null;
+
+  const last=picked[picked.length-1];
+  const lastStint=last.sts[last.sts.length-1];
+  const leagues=[];
+  picked.forEach(x=>x.sts.forEach(st=>{if(!leagues.includes(st.league))leagues.push(st.league);}));
+
+  if(mode==='single'){
+    const groups=last.sts.map(st=>({league:st.league,team:st.team,
+      comps:st.comps.map(c=>({...c,wins:c.win?1:0}))}));
+    const flat=groups.flatMap(g=>g.comps);
+    return{groups,leagues,primaryLeague:lastStint.league,
+      teamLabel:last.sts.map(st=>st.team).join(' → '),
+      totG:sumComps(flat,'goals'),totA:sumComps(flat,'assists'),totApp:sumComps(flat,'apps'),
+      isRange:false,seasonRows:null};
+  }
+
+  const merged={},seasonRows=[];
+  for(const {sid,sts} of picked){
+    let sg=0,sa=0,sapp=0;
+    for(const st of sts) for(const c of st.comps){
+      if(!merged[c.name]) merged[c.name]={name:c.name,apps:0,goals:0,assists:0,wins:0};
+      merged[c.name].apps+=c.apps;
+      merged[c.name].goals+=c.goals;
+      merged[c.name].assists+=c.assists;
+      if(c.win) merged[c.name].wins++;
+      sg+=c.goals;sa+=c.assists;sapp+=c.apps;
+    }
+    seasonRows.push({sid,g:sg,a:sa,ap:sapp,league:[...new Set(sts.map(st=>st.league))].join(' → ')});
+  }
+  const comps=Object.values(merged);
+  return{groups:[{league:lastStint.league,team:lastStint.team,comps}],leagues,
+    primaryLeague:lastStint.league,teamLabel:lastStint.team,
+    totG:sumComps(comps,'goals'),totA:sumComps(comps,'assists'),totApp:sumComps(comps,'apps'),
+    isRange:true,seasonRows};
+}
+
+function buildLeagueTabs(){
+  const entries=PLAYERS.map(p=>({p,lgs:leaguesOfPlayer(p)})).filter(x=>x.lgs.length);
+  const order=UEFA_LEAGUES.map(l=>l.key).filter(k=>entries.some(x=>x.lgs.includes(k)));
+  const isAll=curTab==='all';
+  let html=`<button class="ltab${isAll?' on':''}" onclick="setLeagueTab(this,'all')"
+    ${isAll?`style="background:#1f3e5a;border-color:transparent;color:#fff"`:''}
+  ><span class="dot" style="background:#58a6ff"></span>전체(${entries.length})</button>`;
+  order.forEach(key=>{
+    const lg=UEFA_LEAGUES.find(l=>l.key===key);
+    const cnt=entries.filter(x=>x.lgs.includes(key)).length;
+    const isOn=curTab===key;
+    html+=`<button class="ltab${isOn?' on':''}" onclick="setLeagueTab(this,'${key}')"
+      ${isOn?`style="background:${lg.color}22;border-color:${lg.color};color:#fff"`:''}
+    ><span class="dot" style="background:${lg.color}"></span>${lg.name}(${cnt})</button>`;
+  });
+  document.getElementById('league-tabs').innerHTML=html;
+}
+
+function cardHtml(p,d){
+  const multi=d.groups.length>1;
+  const noData=d.groups.every(g=>!g.comps.length);
+  let tableRows=noData?`<tr><td colspan="5" style="color:#484f58;font-size:12px;text-align:center;padding:12px 8px">
+    소속만 확정 · 기록 입력 전</td></tr>`:d.groups.map(grp=>{
+    const glg=UEFA_LEAGUES.find(l=>l.key===grp.league);
+    const head=multi?`<tr class="stint-row"><td colspan="5"><span class="stint-lbl">
+      <span class="stint-dot" style="background:${glg?glg.color:'#8b949e'}"></span>
+      ${grp.team} · ${grp.league}</span></td></tr>`:'';
+    return head+grp.comps.map(c=>{
+      const col=compColor(c.name);
+      const trp='🏆'.repeat(c.wins||0);
+      return`<tr><td><div class="comp-name">
+        <span class="comp-dot" style="background:${col}"></span>
+        <span class="comp-lbl">${c.name}</span>
+        ${trp?`<span class="trophy-icon">${trp}</span>`:''}
+        </div></td>
+        <td class="num">${c.apps}</td>
+        <td class="num ${c.goals>=5?'hl':''}">${c.goals}</td>
+        <td class="num">${c.assists}</td>
+        <td class="num">${c.goals+c.assists}</td></tr>`;
+    }).join('');
+  }).join('');
+  if(!noData) tableRows+=`<tr class="total-row"><td><strong>${multi?'시즌 합계':'합계'}</strong></td>
+    <td class="num">${d.totApp}</td>
+    <td class="num ${d.totG>=10?'hl':''}">${d.totG}</td>
+    <td class="num">${d.totA}</td>
+    <td class="num">${d.totG+d.totA}</td></tr>`;
+
+  let rangeDetail='';
+  if(d.isRange&&d.seasonRows&&d.seasonRows.length>=1){
+    const maxG=Math.max(...d.seasonRows.map(r=>r.g),1);
+    rangeDetail=`<div class="range-detail"><div class="rd-title">시즌별 기록</div>`;
+    d.seasonRows.forEach(r=>{
+      const pct=Math.round(r.g/maxG*100);
+      rangeDetail+=`<div class="rd-row"><span class="rd-s">${SL[r.sid]}</span>
+        <div class="rd-bar"><div class="rd-fill" style="width:${pct}%"></div></div>
+        <span class="rd-num">${r.g}G ${r.a}A · ${r.ap}경기 · ${r.league}</span></div>`;
+    });
+    rangeDetail+=`</div>`;
+  }
+
+  const badges=d.leagues.map(k=>{
+    const raw=LC[k]||{bg:'#21262d',tc:'#c9d1d9'};
+    const lc=chip(raw.bg,raw.tc);
+    return`<span class="bdg" style="background:${lc.bg};color:${lc.tc}">${k}</span>`;
+  }).join('');
+  const pIdx=PLAYERS.indexOf(p);
+  const avaChip=chip(p.ava.bg,p.ava.c);
+  return`<div class="card">
+    <div class="ctop">
+      <div class="ava" style="background:${avaChip.bg};color:${avaChip.tc}">${p.name[0]}</div>
+      <div class="ci">
+        <div class="cn">${p.name}</div>
+        <div class="cen">${p.en}</div>
+        <div class="cm">${d.teamLabel}
+          <span class="bdg bp">${p.pos}</span>
+          ${badges}
+        </div>
+      </div>
+      <button class="card-edit-btn" onclick="openEditor(${pIdx})">✏️ 편집</button>
+    </div>
+    <table class="comp-table">
+      <thead><tr><th>대회</th><th class="num">출전</th><th class="num">득점</th><th class="num">어시</th><th class="num">G+A</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>${rangeDetail}</div>`;
+}
+
+function renderCards(){
+  const filtered=PLAYERS.map(p=>({p,d:getPlayerData(p)})).filter(x=>x.d);
+
+  document.getElementById('tp').textContent=filtered.length;
+  document.getElementById('tg').textContent=filtered.reduce((s,x)=>s+x.d.totG,0);
+  document.getElementById('ta').textContent=filtered.reduce((s,x)=>s+x.d.totA,0);
+  document.getElementById('tapp').textContent=filtered.reduce((s,x)=>s+x.d.totApp,0);
+
+  if(!filtered.length){
+    const msg=(mode==='single'&&selS===CUR&&ASOF[CUR])
+      ?`${SL[CUR]} 시즌 기록은 아직 입력되지 않았습니다.<br>
+         <span style="font-size:12px;color:#484f58">${ASOF[CUR]}</span>`
+      :'해당 조건에 해당하는 선수가 없습니다.';
+    document.getElementById('content').innerHTML=`<div class="empty">${msg}</div>`;return;}
+
+  let html='';
+  if(mode==='range'){
+    // 기간 합산: 리그별 구간 헤더 없이 이름 가나다순으로 평탄하게 나열
+    const sorted=[...filtered].sort((a,b)=>a.p.name.localeCompare(b.p.name,'ko'));
+    sorted.forEach(({p,d})=>{ html+=cardHtml(p,d); });
+  } else {
+    const lgOrder=UEFA_LEAGUES.map(l=>l.key);
+    const groups={};
+    filtered.forEach(x=>(groups[x.d.primaryLeague]=groups[x.d.primaryLeague]||[]).push(x));
+    lgOrder.forEach(key=>{
+      const g=groups[key];if(!g) return;
+      const lg=UEFA_LEAGUES.find(l=>l.key===key);
+      html+=`<p class="slbl"><span class="slbl-dot" style="background:${lg.color}"></span>${lg.name} · ${g.length}명 <span style="color:#484f58;font-size:10px">UEFA ${lg.rank}위</span></p>`;
+      g.forEach(({p,d})=>{ html+=cardHtml(p,d); });
+    });
+  }
+  document.getElementById('content').innerHTML=html;
+}
+
+function render(){
+  document.getElementById('mode-label').textContent=
+    mode==='single'?`📅 ${SL[selS]} 시즌 ${selS===CUR?'진행 중':'최종'}`
+    :`📊 ${SL[rfrom]} ~ ${SL[rto]} 합산`;
+  if(curTab!=='all'&&!PLAYERS.some(p=>leaguesOfPlayer(p).includes(curTab))) curTab='all';
+  buildLeagueTabs();
+  renderCards();
+}
+
+function renderCoef(){
+  const maxPts=UEFA_LEAGUES[0].pts;
+  const rankColors=['#f59e0b','#9ca3af','#cd7c2f','#3b82f6','#3b82f6','#3b82f6','#3b82f6','#3b82f6','#3b82f6','#3b82f6'];
+  const rankBgs=['#3a2a00','#2a2a2a','#2a1a00','#1c2d3a','#1c2d3a','#1c2d3a','#1c2d3a','#1c2d3a','#1c2d3a','#1c2d3a'];
+  let html=UEFA_LEAGUES.map((lg,i)=>{
+    const pct=Math.round(lg.pts/maxPts*100);
+    const sw=SEASONS.filter(sid=>PLAYERS.some(p=>stintsOf(p,sid,lg.key).length));
+    const ck=PLAYERS.filter(p=>stintsOf(p,CUR,lg.key).length);
+    const rankChip=chip(rankBgs[i],rankColors[i]);
+    return`<div class="coef-card"><div class="coef-top">
+      <div class="coef-rank" style="background:${rankChip.bg};color:${rankChip.tc}">${lg.rank}</div>
+      <div class="coef-info"><div class="coef-name">${lg.flag} ${lg.name}</div>
+      <div class="coef-country">${lg.country} · ${lg.clubs}</div></div>
+      <div class="coef-pts"><div class="pts">${lg.pts.toFixed(3)}</div><div class="ptsl">계수 점수</div></div>
+      </div>
+      <div class="coef-bar-wrap"><div class="coef-bar" style="width:${pct}%;background:${lg.color};opacity:.7"></div></div>
+      <div class="coef-bottom"><span class="coef-meta">${SEASONS.length}시즌 한국 선수 활약: ${sw.length}시즌</span>
+      ${ck.length>0
+        ?`<span class="korean-badge">🇰🇷 ${SL[CUR]} ${ck.length}명 (${ck.map(p=>p.name).join(', ')})</span>`
+        :`<span class="korean-badge none">${SL[CUR]} 한국 선수 없음</span>`
+      }</div></div>`;
+  }).join('');
+  document.getElementById('coef-grid').innerHTML=html;
+}
+
+/* ===================== 편집 UI ===================== */
+let editMode=false, dirty=false, fileHandle=null, editState=null;
+
+function toggleEditMode(){
+  editMode=!editMode;
+  document.body.classList.toggle('edit-mode',editMode);
+  document.getElementById('edit-toggle-btn').classList.toggle('active',editMode);
+}
+function markDirty(){
+  dirty=true;
+  document.getElementById('save-file-btn').classList.add('dirty');
+  document.getElementById('edit-status').textContent='저장 안 된 변경사항 있음';
+}
+function markSaved(){
+  dirty=false;
+  document.getElementById('save-file-btn').classList.remove('dirty');
+  document.getElementById('edit-status').textContent='저장됨 · '+new Date().toLocaleTimeString('ko-KR');
+}
+window.addEventListener('beforeunload',e=>{ if(dirty){e.preventDefault();e.returnValue='';} });
+
+function escAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function toHex(v){ return /^#[0-9a-fA-F]{6}$/.test(v)?v:'#888888'; }
+function blankPlayer(){
+  const seasons={};
+  SEASONS.forEach(sid=>seasons[sid]=null);
+  return{name:'',en:'',pos:'MF',ava:{bg:'#1c3a5a',c:'#93c5fd'},seasons};
+}
+function knownCompNames(){
+  const set=new Set(UEFA_LEAGUES.map(l=>l.key));
+  Object.keys(COMP_COUNTRY).forEach(n=>set.add(n));
+  Object.keys(INTL_COLOR).forEach(n=>set.add(n));
+  return[...set];
+}
+
+function openEditor(idx){
+  editState={idx, player: idx===null ? blankPlayer() : JSON.parse(JSON.stringify(PLAYERS[idx])), curSeason:CUR};
+  document.getElementById('modal-overlay').classList.add('open');
+  renderModal();
+}
+function closeEditor(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-body').innerHTML='';
+  editState=null;
+}
+
+function renderModal(){
+  const st=editState; if(!st) return;
+  const p=st.player;
+  const isNew=st.idx===null;
+  const compNames=knownCompNames();
+  const datalist=`<datalist id="compNameList">${compNames.map(n=>`<option value="${n}">`).join('')}</datalist>`;
+
+  const seasonTabsHtml=SEASONS.map(sid=>{
+    const has=!!p.seasons[sid];
+    return `<button type="button" class="season-tab${sid===st.curSeason?' on':''}${has?' hasdata':''}" onclick="switchModalSeason('${sid}')">${SL[sid]}</button>`;
+  }).join('');
+
+  const season=p.seasons[st.curSeason];
+  let seasonBodyHtml=`<label class="null-toggle"><input type="checkbox" ${season?'':'checked'} onchange="toggleSeasonNull(this.checked)"> 이 시즌 TOP10 리그 미출전 (null)</label>`;
+  if(season){
+    seasonBodyHtml+=season.stints.map((stObj,sIdx)=>{
+      const leagueOpts=UEFA_LEAGUES.map(l=>`<option value="${l.key}" ${stObj.league===l.key?'selected':''}>${l.name}</option>`).join('');
+      const compsHtml=stObj.comps.map((c,cIdx)=>`<div class="comp-row">
+          <input type="text" list="compNameList" value="${escAttr(c.name)}" placeholder="대회명" oninput="updateComp(${sIdx},${cIdx},'name',this.value)">
+          <input type="number" min="0" value="${c.apps}" title="출전" oninput="updateComp(${sIdx},${cIdx},'apps',this.value)">
+          <input type="number" min="0" value="${c.goals}" title="골" oninput="updateComp(${sIdx},${cIdx},'goals',this.value)">
+          <input type="number" min="0" value="${c.assists}" title="도움" oninput="updateComp(${sIdx},${cIdx},'assists',this.value)">
+          <label class="wchk"><input type="checkbox" ${c.win?'checked':''} onchange="updateComp(${sIdx},${cIdx},'win',this.checked)"> 🏆</label>
+          <button type="button" class="mini-btn" onclick="removeComp(${sIdx},${cIdx})">✕</button>
+        </div>`).join('');
+      return `<div class="stint-box">
+        <div class="stint-box-head">
+          <select onchange="updateStint(${sIdx},'league',this.value)">${leagueOpts}</select>
+          <input type="text" value="${escAttr(stObj.team)}" placeholder="팀명 (임대 등 표기 포함)" oninput="updateStint(${sIdx},'team',this.value)">
+          <button type="button" class="mini-btn" onclick="removeStint(${sIdx})">구간 삭제</button>
+        </div>
+        ${compsHtml}
+        <button type="button" class="mini-btn add" onclick="addComp(${sIdx})">+ 대회 추가</button>
+      </div>`;
+    }).join('') + `<button type="button" class="mini-btn add" onclick="addStint()">+ 구간(이적) 추가</button>`;
+  }
+
+  document.getElementById('modal-body').innerHTML=`
+    ${datalist}
+    <h2>${isNew?'새 선수 추가':'선수 편집 — '+escAttr(p.name)}</h2>
+    <div class="mrow">
+      <div class="mfield" style="flex:0 0 44px"><label>&nbsp;</label><div class="avatar-preview" style="background:${p.ava.bg};color:${p.ava.c}">${p.name?p.name[0]:'?'}</div></div>
+      <div class="mfield"><label>이름</label><input type="text" value="${escAttr(p.name)}" oninput="updatePlayerField('name',this.value)"></div>
+      <div class="mfield"><label>영문명</label><input type="text" value="${escAttr(p.en)}" oninput="updatePlayerField('en',this.value)"></div>
+      <div class="mfield" style="flex:0 0 90px"><label>포지션</label><input type="text" value="${escAttr(p.pos)}" oninput="updatePlayerField('pos',this.value)"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label>아바타 배경색</label><input type="color" value="${toHex(p.ava.bg)}" oninput="updateAva('bg',this.value)"></div>
+      <div class="mfield"><label>아바타 글자색</label><input type="color" value="${toHex(p.ava.c)}" oninput="updateAva('c',this.value)"></div>
+    </div>
+    <div class="season-tabs">${seasonTabsHtml}</div>
+    ${seasonBodyHtml}
+    <div class="warn-note" id="modal-warn"></div>
+    <div class="modal-actions">
+      <div>${isNew?'':'<button type="button" class="mbtn danger" onclick="deletePlayerFromModal()">선수 삭제</button>'}</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="mbtn secondary" onclick="closeEditor()">취소</button>
+        <button type="button" class="mbtn primary" onclick="savePlayerFromModal()">저장</button>
+      </div>
+    </div>
+  `;
+  checkCompWarnings();
+}
+
+function updatePlayerField(field,val){
+  editState.player[field]=val;
+  const h2=document.querySelector('#modal-body h2');
+  if(h2) h2.textContent=(editState.idx===null?'새 선수 추가':'선수 편집 — '+val);
+  if(field==='name'){
+    const av=document.querySelector('.avatar-preview');
+    if(av) av.textContent=val?val[0]:'?';
+  }
+}
+function updateAva(k,val){
+  editState.player.ava[k]=val;
+  const av=document.querySelector('.avatar-preview');
+  if(av) av.style[k==='bg'?'background':'color']=val;
+}
+function switchModalSeason(sid){ editState.curSeason=sid; renderModal(); }
+function toggleSeasonNull(isChecked){
+  const sid=editState.curSeason;
+  editState.player.seasons[sid]=isChecked?null:{stints:[{league:UEFA_LEAGUES[0].key,team:'',comps:[]}]};
+  renderModal();
+}
+function addStint(){
+  editState.player.seasons[editState.curSeason].stints.push({league:UEFA_LEAGUES[0].key,team:'',comps:[]});
+  renderModal();
+}
+function removeStint(sIdx){
+  const season=editState.player.seasons[editState.curSeason];
+  season.stints.splice(sIdx,1);
+  if(!season.stints.length) editState.player.seasons[editState.curSeason]=null;
+  renderModal();
+}
+function updateStint(sIdx,field,val){
+  editState.player.seasons[editState.curSeason].stints[sIdx][field]=val;
+  if(field==='league') checkCompWarnings();
+}
+function addComp(sIdx){
+  editState.player.seasons[editState.curSeason].stints[sIdx].comps.push({name:'',apps:0,goals:0,assists:0});
+  renderModal();
+}
+function removeComp(sIdx,cIdx){
+  editState.player.seasons[editState.curSeason].stints[sIdx].comps.splice(cIdx,1);
+  renderModal();
+}
+function updateComp(sIdx,cIdx,field,val){
+  const c=editState.player.seasons[editState.curSeason].stints[sIdx].comps[cIdx];
+  if(field==='name') c.name=val;
+  else if(field==='win'){ if(val) c.win=true; else delete c.win; }
+  else c[field]=Math.max(0,parseInt(val)||0);
+  if(field==='name') checkCompWarnings();
+}
+function checkCompWarnings(){
+  const warnEl=document.getElementById('modal-warn');
+  if(!warnEl||!editState) return;
+  const season=editState.player.seasons[editState.curSeason];
+  if(!season){warnEl.textContent='';return;}
+  const unregistered=[];
+  season.stints.forEach(st=>st.comps.forEach(c=>{
+    if(!c.name) return;
+    const isLeagueName=UEFA_LEAGUES.some(l=>l.key===c.name);
+    if(!isLeagueName && !INTL_COLOR[c.name] && !COMP_COUNTRY[c.name]) unregistered.push(c.name);
+  }));
+  warnEl.textContent=unregistered.length
+    ?`⚠️ COMP_COUNTRY에 없는 대회명: ${[...new Set(unregistered)].join(', ')} — 카드에 회색으로 표시됩니다`
+    :'';
+}
+
+function savePlayerFromModal(){
+  const p=editState.player;
+  if(!p.name.trim()){ alert('이름을 입력해주세요.'); return; }
+  if(!p.en.trim()){ alert('영문명을 입력해주세요.'); return; }
+  for(const sid of SEASONS){
+    const season=p.seasons[sid];
+    if(season) for(const st of season.stints){
+      if(!UEFA_LEAGUES.some(l=>l.key===st.league)){
+        alert(`${SL[sid]} 시즌의 리그값(${st.league})이 UEFA_LEAGUES에 없습니다.`);
+        return;
+      }
+    }
+  }
+  if(editState.idx===null) PLAYERS.push(p);
+  else PLAYERS[editState.idx]=p;
+  closeEditor();
+  markDirty();
+  render();
+}
+function deletePlayerFromModal(){
+  if(!confirm(`${editState.player.name} 선수를 삭제할까요? (파일 저장 전까지는 되돌릴 수 있습니다)`)) return;
+  PLAYERS.splice(editState.idx,1);
+  closeEditor();
+  markDirty();
+  render();
+}
+
+/* --- 소스 직렬화 & 파일 저장 --- */
+function jsStr(s){ return "'"+String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'"; }
+function serializeComp(c){
+  let s=`{name:${jsStr(c.name)},apps:${c.apps},goals:${c.goals},assists:${c.assists}`;
+  if(c.win) s+=',win:true';
+  return s+'}';
+}
+function serializeStint(st){
+  return `{league:${jsStr(st.league)},team:${jsStr(st.team)},comps:[${st.comps.map(serializeComp).join(',')}]}`;
+}
+function serializeSeason(season){
+  return season?`{stints:[${season.stints.map(serializeStint).join(',')}]}`:'null';
+}
+function serializePlayer(p){
+  const seasonsStr=SEASONS.map(sid=>`'${sid}':${serializeSeason(p.seasons[sid])}`).join(',\n    ');
+  return `  {name:${jsStr(p.name)},en:${jsStr(p.en)},pos:${jsStr(p.pos)},ava:{bg:${jsStr(p.ava.bg)},c:${jsStr(p.ava.c)}},seasons:{\n    ${seasonsStr},\n  }}`;
+}
+function serializePlayersArray(){
+  return 'const PLAYERS=[\n'+PLAYERS.map(serializePlayer).join(',\n')+',\n];';
+}
+function buildNewFileHtml(){
+  const orig=document.getElementById('mainscript').textContent;
+  const re=/const PLAYERS=\[[\s\S]*?\n\];(?=\s*\n\s*let mode=)/;
+  if(!re.test(orig)) throw new Error('PLAYERS 블록을 못 찾았습니다.');
+  const newScript=orig.replace(re,serializePlayersArray());
+
+  // 저장 시점의 일시적 UI 상태(편집모드 on·dirty 표시 등)가 파일에 그대로 굳지 않도록
+  // 캡처 직전 "저장 완료" 상태로 정규화했다가 캡처 후 복원한다.
+  const editToggleBtn=document.getElementById('edit-toggle-btn');
+  const saveFileBtn=document.getElementById('save-file-btn');
+  const editStatusEl=document.getElementById('edit-status');
+  const snap={
+    bodyEditMode:document.body.classList.contains('edit-mode'),
+    toggleActive:editToggleBtn.classList.contains('active'),
+    saveDirty:saveFileBtn.classList.contains('dirty'),
+    statusText:editStatusEl.textContent,
+  };
+  document.body.classList.remove('edit-mode');
+  editToggleBtn.classList.remove('active');
+  saveFileBtn.classList.remove('dirty');
+  editStatusEl.textContent='';
+
+  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+
+  if(snap.bodyEditMode) document.body.classList.add('edit-mode');
+  if(snap.toggleActive) editToggleBtn.classList.add('active');
+  if(snap.saveDirty) saveFileBtn.classList.add('dirty');
+  editStatusEl.textContent=snap.statusText;
+
+  html=html.replace(/(<script id="mainscript">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+newScript+b);
+  return html;
+}
+async function saveToFile(){
+  let html;
+  try{ html=buildNewFileHtml(); }
+  catch(e){ alert('저장 준비 중 오류: '+e.message); return; }
+
+  if('showSaveFilePicker' in window){
+    try{
+      if(!fileHandle){
+        fileHandle=await window.showSaveFilePicker({
+          suggestedName:'koreaFootball.html',
+          types:[{description:'HTML',accept:{'text/html':['.html']}}]
+        });
+      }
+      const writable=await fileHandle.createWritable();
+      await writable.write(html);
+      await writable.close();
+      markSaved();
+    }catch(err){
+      if(err.name!=='AbortError') alert('저장 실패: '+err.message);
+    }
+  } else {
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='koreaFootball.html';
+    document.body.appendChild(a);a.click();a.remove();
+    URL.revokeObjectURL(url);
+    markSaved();
+    alert('이 브라우저는 파일 직접 저장을 지원하지 않아 새로 다운로드했습니다.\n다운로드된 파일로 기존 koreaFootball.html을 교체해주세요. (Chrome/Edge에서는 자동으로 원본 파일에 저장됩니다)');
+  }
+}
+
+render();
+</script>
+
+</body></html>
