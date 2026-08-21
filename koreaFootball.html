@@ -181,6 +181,15 @@ body.edit-mode .add-player-btn{display:block}
 .mbtn.secondary:hover{border-color:var(--text-muted);color:var(--text-heading)}
 .mbtn.danger{background:transparent;border:1px solid var(--danger-bg-soft);color:var(--danger)}
 .mbtn.danger:hover{background:var(--danger-bg-soft)}
+
+/* --- 모바일 세로모드: 숫자 컬럼이 58px 고정이라 좁은 화면에서 대회명 칸이 너무 좁아짐 --- */
+@media (max-width:480px){
+  .wrap{padding:1.25rem .75rem}
+  .card{padding:.9rem .85rem}
+  .comp-table th.num,.comp-table td.num{width:34px}
+  .comp-table th,.comp-table td{padding:6px 4px}
+  .comp-lbl{font-size:11px}
+}
 </style>
 </head>
 <body class="">
