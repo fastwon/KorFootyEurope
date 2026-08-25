@@ -36,8 +36,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .wrap{max-width:1000px;margin:0 auto;padding:2rem 1.5rem}
 h1{font-size:22px;font-weight:600;margin-bottom:4px}
 .sub{font-size:13px;color:var(--text-muted);margin-bottom:1.5rem}
-.main-tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border)}
-.main-tab{padding:10px 20px;font-size:14px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.main-tabs{display:flex;flex-wrap:wrap;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.main-tab{padding:10px 20px;font-size:14px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500;white-space:nowrap}
 .main-tab:hover{color:var(--text-heading)}
 .main-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 .filter-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
@@ -145,6 +145,7 @@ body.edit-mode .card-edit-btn{display:inline-block}
 body.edit-mode .add-player-btn{display:block}
 
 .modal-overlay{display:none;position:fixed;inset:0;background:var(--overlay);z-index:100;align-items:flex-start;justify-content:center;padding:3vh 1rem;overflow-y:auto}
+#post-detail-overlay{align-items:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;max-width:640px;width:100%;padding:1.5rem;margin-bottom:3vh}
 .modal h2{font-size:16px;margin-bottom:1rem}
@@ -195,6 +196,7 @@ body.logged-in .board-btn{display:inline-block}
 .post-title{font-size:14px;font-weight:500}
 .post-meta{font-size:11px;color:var(--text-faint);white-space:nowrap}
 .video-embed{position:relative;width:100%;padding-top:56.25%;margin-top:12px;border-radius:8px;overflow:hidden;background:var(--bg-subtle)}
+.video-embed.shorts{width:min(100%,360px);padding-top:min(177.78%,640px);margin-left:auto;margin-right:auto}
 .video-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
 .post-note{font-size:14px;line-height:1.6;color:var(--text);margin-top:12px;white-space:pre-wrap}
 .post-link{display:inline-block;margin-top:12px;color:var(--accent);font-size:13px}
@@ -223,9 +225,9 @@ body.logged-in .board-btn{display:inline-block}
   </div>
 
   <div class="main-tabs">
-    <button class="main-tab on" onclick="switchMain(this,'board')">📋 경기 기록 게시판</button>
+    <button class="main-tab on" onclick="switchMain(this,'board')">📋 게시판</button>
     <button class="main-tab" onclick="switchMain(this,'players')">🇰🇷 선수 기록</button>
-    <button class="main-tab" onclick="switchMain(this,'coef')">📊 UEFA 리그 계수</button>
+    <button class="main-tab" onclick="switchMain(this,'coef')">📊 UEFA 계수</button>
   </div>
 
   <div id="sec-board">
@@ -1028,9 +1030,10 @@ function openPostDetail(id){
   const post=POSTS.find(p=>p.id===id);
   if(!post) return;
   const embed=youtubeEmbedUrl(post.video_url);
+  const isShorts=/youtube\.com\/shorts\//.test(post.video_url||'');
   const videoHtml=post.video_url
     ?(embed
-      ?`<div class="video-embed"><iframe src="${embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
+      ?`<div class="video-embed${isShorts?' shorts':''}"><iframe src="${embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
       :`<a class="post-link" href="${escAttr(post.video_url)}" target="_blank" rel="noopener">🔗 영상 링크 열기</a>`)
     :'';
   const isLoggedIn=document.body.classList.contains('logged-in');
