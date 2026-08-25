@@ -5,3 +5,4 @@ koreaFootball.pre-editui.html
 koreaFootball.pre-db.html
 migrate_players.sql
 fix_updated_at_trigger.sql
+create_posts_table.sql

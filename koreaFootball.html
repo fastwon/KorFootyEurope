@@ -182,6 +182,23 @@ body.edit-mode .add-player-btn{display:block}
 .mbtn.danger{background:transparent;border:1px solid var(--danger-bg-soft);color:var(--danger)}
 .mbtn.danger:hover{background:var(--danger-bg-soft)}
 
+/* --- 게시판 --- */
+.board-toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.board-btn{display:none;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-heading);font-weight:500;transition:all .15s}
+body.logged-in .board-btn{display:inline-block}
+.board-btn:hover{border-color:var(--accent);color:var(--accent)}
+.board-btn.primary{border-color:var(--accent-strong);background:var(--accent-strong);color:#fff}
+.board-btn.primary:hover{opacity:.9;color:#fff}
+.post-list{display:flex;flex-direction:column;gap:6px}
+.post-item{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;cursor:pointer;transition:border-color .15s;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.post-item:hover{border-color:var(--accent-strong)}
+.post-title{font-size:14px;font-weight:500}
+.post-meta{font-size:11px;color:var(--text-faint);white-space:nowrap}
+.video-embed{position:relative;width:100%;padding-top:56.25%;margin-top:12px;border-radius:8px;overflow:hidden;background:var(--bg-subtle)}
+.video-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.post-note{font-size:14px;line-height:1.6;color:var(--text);margin-top:12px;white-space:pre-wrap}
+.post-link{display:inline-block;margin-top:12px;color:var(--accent);font-size:13px}
+
 /* --- 모바일 세로모드: 숫자 컬럼이 58px 고정이라 좁은 화면에서 대회명 칸이 너무 좁아짐 --- */
 @media (max-width:480px){
   .wrap{padding:1.25rem .75rem}
@@ -206,11 +223,20 @@ body.edit-mode .add-player-btn{display:block}
   </div>
 
   <div class="main-tabs">
-    <button class="main-tab on" onclick="switchMain(this,'players')">🇰🇷 선수 기록</button>
+    <button class="main-tab on" onclick="switchMain(this,'board')">📋 경기 기록 게시판</button>
+    <button class="main-tab" onclick="switchMain(this,'players')">🇰🇷 선수 기록</button>
     <button class="main-tab" onclick="switchMain(this,'coef')">📊 UEFA 리그 계수</button>
   </div>
 
-  <div id="sec-players">
+  <div id="sec-board">
+    <div class="board-toolbar">
+      <button class="board-btn primary" onclick="openPostForm()">✏️ 골·도움 기록</button>
+      <button class="board-btn" onclick="openApptForm()">🏃 출전만 +1</button>
+    </div>
+    <div class="post-list" id="post-list"></div>
+  </div>
+
+  <div id="sec-players" style="display:none">
     <div class="filter-box">
       <h3>📅 시즌 선택</h3>
       <div class="sbtn-row">
@@ -574,6 +600,18 @@ body.edit-mode .add-player-btn{display:block}
   </div>
 </div>
 
+<div class="modal-overlay" id="post-overlay">
+  <div class="modal" id="post-modal-body"></div>
+</div>
+
+<div class="modal-overlay" id="appt-overlay">
+  <div class="modal" id="appt-modal-body"></div>
+</div>
+
+<div class="modal-overlay" id="post-detail-overlay">
+  <div class="modal" id="post-detail-body"></div>
+</div>
+
 <script id="mainscript">
 (function(){
   const saved=localStorage.getItem('euko-theme');
@@ -675,9 +713,11 @@ let mode='single',selS='2627',rfrom='2122',rto='2627',curTab='all';
 function switchMain(el,sec){
   document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
+  document.getElementById('sec-board').style.display=sec==='board'?'':'none';
   document.getElementById('sec-players').style.display=sec==='players'?'':'none';
   document.getElementById('sec-coef').style.display=sec==='coef'?'':'none';
   if(sec==='coef') renderCoef();
+  if(sec==='board') loadPosts().then(renderBoard);
 }
 function setSingle(el,s){
   mode='single';selS=s;
@@ -941,6 +981,303 @@ async function loadPlayers(){
   PLAYERS=data.map(rowToPlayer);
 }
 
+/* ===================== 게시판 ===================== */
+let POSTS=[];
+
+// 그 선수의 이번 시즌(CUR) 마지막(=현재) 구간 — 게시글/출전 기록 갱신 대상
+function currentStintOf(p){
+  const s=p.seasons[CUR];
+  if(!s||!s.stints||!s.stints.length) return null;
+  return s.stints[s.stints.length-1];
+}
+
+// 저장된 시각(UTC)을 뷰어의 로컬 시간대와 무관하게 항상 한국시간(KST)으로 표시
+function formatKST(isoString){
+  const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone:'Asia/Seoul',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false
+  }).formatToParts(new Date(isoString));
+  const get=type=>parts.find(p=>p.type===type).value;
+  return `${get('month')}/${get('day')} ${get('hour')}:${get('minute')}`;
+}
+
+async function loadPosts(){
+  const{data,error}=await sb.from('posts').select('*').order('created_at',{ascending:false});
+  if(error){ console.error('게시글 로드 실패',error); POSTS=[]; return; }
+  POSTS=data;
+}
+
+function renderBoard(){
+  const listEl=document.getElementById('post-list');
+  if(!POSTS.length){ listEl.innerHTML='<div class="empty">아직 게시글이 없습니다.</div>'; return; }
+  listEl.innerHTML=POSTS.map(post=>{
+    const dateStr=formatKST(post.created_at);
+    return`<div class="post-item" onclick="openPostDetail('${post.id}')">
+      <span class="post-title">${escAttr(post.title)}</span>
+      <span class="post-meta">${dateStr}</span>
+    </div>`;
+  }).join('');
+}
+
+function youtubeEmbedUrl(url){
+  if(!url) return null;
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m?`https://www.youtube.com/embed/${m[1]}`:null;
+}
+
+function openPostDetail(id){
+  const post=POSTS.find(p=>p.id===id);
+  if(!post) return;
+  const embed=youtubeEmbedUrl(post.video_url);
+  const videoHtml=post.video_url
+    ?(embed
+      ?`<div class="video-embed"><iframe src="${embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
+      :`<a class="post-link" href="${escAttr(post.video_url)}" target="_blank" rel="noopener">🔗 영상 링크 열기</a>`)
+    :'';
+  const isLoggedIn=document.body.classList.contains('logged-in');
+  const isGoalOrAssist=post.event_type==='골'||post.event_type==='도움';
+  document.getElementById('post-detail-body').innerHTML=`
+    <h2>${escAttr(post.title)}</h2>
+    ${post.note?`<div class="post-note">${escAttr(post.note)}</div>`:''}
+    ${videoHtml}
+    <div class="modal-actions">
+      <div style="display:flex;gap:8px">
+        ${isLoggedIn?`<button type="button" class="mbtn danger" onclick="deletePostFromDetail('${post.id}')">삭제</button>`:''}
+        ${isLoggedIn&&isGoalOrAssist?`<button type="button" class="mbtn secondary" onclick="openPostEdit('${post.id}')">편집</button>`:''}
+        ${isLoggedIn&&isGoalOrAssist?`<button type="button" class="mbtn secondary" onclick="duplicatePost('${post.id}')">복사</button>`:''}
+      </div>
+      <button type="button" class="mbtn secondary" onclick="closePostDetail()">닫기</button>
+    </div>
+  `;
+  document.getElementById('post-detail-overlay').classList.add('open');
+}
+function closePostDetail(){
+  document.getElementById('post-detail-overlay').classList.remove('open');
+  document.getElementById('post-detail-body').innerHTML='';
+}
+async function deletePostFromDetail(id){
+  if(!confirm('이 게시글을 삭제할까요? (선수 기록은 자동으로 되돌아가지 않습니다)')) return;
+  const{error}=await sb.from('posts').delete().eq('id',id);
+  if(error){ alert('삭제 실패: '+error.message); return; }
+  closePostDetail();
+  await loadPosts();
+  renderBoard();
+}
+
+/* --- 골·도움 기록 작성 --- */
+let postFormState=null;
+
+function openPostForm(){
+  if(!PLAYERS.length) return;
+  postFormState={playerIdx:0,eventType:'골',comp:'',opponent:'',round:'',note:'',videoUrl:'',team:'',editingPostId:null};
+  document.getElementById('post-overlay').classList.add('open');
+  renderPostForm();
+}
+function openPostEdit(id){
+  const post=POSTS.find(p=>p.id===id);
+  if(!post) return;
+  const playerIdx=PLAYERS.findIndex(p=>p.id===post.player_id);
+  postFormState={
+    playerIdx:playerIdx>=0?playerIdx:0, eventType:post.event_type, comp:post.league||'',
+    opponent:post.opponent||'', round:post.round||'', note:post.note||'', videoUrl:post.video_url||'',
+    team:post.team, editingPostId:post.id,
+  };
+  closePostDetail();
+  document.getElementById('post-overlay').classList.add('open');
+  renderPostForm();
+}
+function duplicatePost(id){
+  const post=POSTS.find(p=>p.id===id);
+  if(!post) return;
+  const playerIdx=PLAYERS.findIndex(p=>p.id===post.player_id);
+  postFormState={
+    playerIdx:playerIdx>=0?playerIdx:0, eventType:post.event_type, comp:post.league||'',
+    opponent:post.opponent||'', round:post.round||'', note:post.note||'', videoUrl:post.video_url||'',
+    team:'', editingPostId:null,
+  };
+  closePostDetail();
+  document.getElementById('post-overlay').classList.add('open');
+  renderPostForm();
+}
+function closePostForm(){
+  document.getElementById('post-overlay').classList.remove('open');
+  document.getElementById('post-modal-body').innerHTML='';
+  postFormState=null;
+}
+function renderPostForm(){
+  const st=postFormState; if(!st) return;
+  const isEdit=!!st.editingPostId;
+  const player=PLAYERS[st.playerIdx];
+  const stint=player?currentStintOf(player):null;
+  if(!isEdit){
+    if(stint&&!st.comp) st.comp=stint.league;
+    if(stint) st.team=stint.team;
+  }
+  const compOptions=stint?compNamesForLeague(stint.league):(st.comp?[st.comp]:[]);
+  const playerOpts=PLAYERS.map((p,i)=>`<option value="${i}" ${i===st.playerIdx?'selected':''}>${p.name}</option>`).join('');
+  const compOpts=compOptions.map(n=>`<option value="${n}" ${n===st.comp?'selected':''}>${n}</option>`).join('');
+  const noStint=player&&!stint&&!isEdit;
+
+  document.getElementById('post-modal-body').innerHTML=`
+    <h2>${isEdit?'✏️ 게시글 수정':'✏️ 골·도움 기록'}</h2>
+    <form onsubmit="return savePost(event)">
+      <div class="mrow">
+        <div class="mfield"><label>선수</label><select ${isEdit?'disabled':''} onchange="postFormState.playerIdx=+this.value;postFormState.comp='';renderPostForm()">${playerOpts}</select></div>
+        <div class="mfield" style="flex:0 0 90px"><label>기록</label>
+          <select ${isEdit?'disabled':''} onchange="postFormState.eventType=this.value">
+            <option value="골" ${st.eventType==='골'?'selected':''}>골</option>
+            <option value="도움" ${st.eventType==='도움'?'selected':''}>도움</option>
+          </select>
+        </div>
+      </div>
+      ${isEdit?`<div class="warn-note">선수·기록 종류는 수정할 수 없습니다 (골/도움 집계와 직결돼서요). 나머지 정보만 고칠 수 있어요.</div>`:''}
+      ${noStint?`<div class="warn-note">이 선수는 ${SL[CUR]} 시즌 소속 정보가 없어 기록할 수 없습니다.</div>`:`
+      <div class="mrow">
+        <div class="mfield"><label>대회</label><select onchange="postFormState.comp=this.value">${compOpts}</select></div>
+        <div class="mfield"><label>상대팀</label><input type="text" value="${escAttr(st.opponent)}" placeholder="레알 마드리드" oninput="postFormState.opponent=this.value"></div>
+      </div>
+      <div class="mrow">
+        <div class="mfield"><label>라운드 (자유 입력)</label><input type="text" value="${escAttr(st.round)}" placeholder="3R / 8강 / 조별리그 2차전 등" oninput="postFormState.round=this.value"></div>
+      </div>
+      <div class="mrow">
+        <div class="mfield"><label>한줄 메모</label><input type="text" value="${escAttr(st.note)}" placeholder="선택 입력" oninput="postFormState.note=this.value"></div>
+      </div>
+      <div class="mrow">
+        <div class="mfield"><label>유튜브(영상) 링크</label><input type="text" value="${escAttr(st.videoUrl)}" placeholder="https://youtube.com/watch?v=..." oninput="postFormState.videoUrl=this.value"></div>
+      </div>`}
+      <div class="warn-note" id="post-form-error"></div>
+      <div class="modal-actions">
+        <div></div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="mbtn secondary" onclick="closePostForm()">취소</button>
+          <button type="submit" class="mbtn primary" ${noStint?'disabled':''}>${isEdit?'수정':'등록'}</button>
+        </div>
+      </div>
+    </form>
+  `;
+}
+async function savePost(e){
+  e.preventDefault();
+  const st=postFormState;
+  const player=PLAYERS[st.playerIdx];
+  if(!st.comp){ document.getElementById('post-form-error').textContent='대회를 확인해주세요.'; return false; }
+
+  const opponent=(st.opponent||'').trim();
+  const round=(st.round||'').trim();
+  const note=(st.note||'').trim();
+  const videoUrl=(st.videoUrl||'').trim();
+  const title=`[${st.comp}${round}][${st.team}${opponent?' vs '+opponent:''}] ${player.name} ${st.eventType}`;
+
+  if(st.editingPostId){
+    // 수정: 게시글 내용만 바꾼다. 골/도움 집계는 작성 시점에 이미 반영됐으므로 다시 건드리지 않는다.
+    const{error}=await sb.from('posts').update({
+      title, team:st.team, opponent:opponent||null, league:st.comp, round:round||null,
+      note:note||null, video_url:videoUrl||null,
+    }).eq('id',st.editingPostId);
+    if(error){ document.getElementById('post-form-error').textContent='수정 실패: '+error.message; return false; }
+    closePostForm();
+    await loadPosts();
+    renderBoard();
+    return false;
+  }
+
+  const stint=currentStintOf(player);
+  if(!stint){ document.getElementById('post-form-error').textContent='선수/대회를 확인해주세요.'; return false; }
+
+  const seasonsCopy=JSON.parse(JSON.stringify(player.seasons));
+  const stintCopy=seasonsCopy[CUR].stints[seasonsCopy[CUR].stints.length-1];
+  let comp=stintCopy.comps.find(c=>c.name===st.comp);
+  if(!comp){ comp={name:st.comp,apps:0,goals:0,assists:0}; stintCopy.comps.push(comp); }
+  // 출전(apps)은 안 건드린다 — 한 경기에 골을 2개 넣으면 게시글도 2개가 되는데,
+  // 그때마다 apps까지 올리면 경기수가 중복 계산된다. apps는 "출전만 +1" 버튼으로만 올린다.
+  if(st.eventType==='골') comp.goals+=1; else comp.assists+=1;
+
+  const{error:pErr}=await sb.from('players').update({seasons:seasonsCopy}).eq('id',player.id);
+  if(pErr){ document.getElementById('post-form-error').textContent='선수 기록 갱신 실패: '+pErr.message; return false; }
+  player.seasons=seasonsCopy;
+
+  const{error:postErr}=await sb.from('posts').insert({
+    title, player_id:player.id, event_type:st.eventType, team:st.team, opponent:opponent||null,
+    league:st.comp, round:round||null, note:note||null, video_url:videoUrl||null,
+  });
+  if(postErr){ document.getElementById('post-form-error').textContent='게시글 저장 실패: '+postErr.message; return false; }
+
+  closePostForm();
+  render();
+  await loadPosts();
+  renderBoard();
+  return false;
+}
+
+/* --- 출전만 +1 --- */
+let apptFormState=null;
+
+function openApptForm(){
+  if(!PLAYERS.length) return;
+  apptFormState={playerIdx:0,comp:''};
+  document.getElementById('appt-overlay').classList.add('open');
+  renderApptForm();
+}
+function closeApptForm(){
+  document.getElementById('appt-overlay').classList.remove('open');
+  document.getElementById('appt-modal-body').innerHTML='';
+  apptFormState=null;
+}
+function renderApptForm(){
+  const st=apptFormState; if(!st) return;
+  const player=PLAYERS[st.playerIdx];
+  const stint=player?currentStintOf(player):null;
+  if(stint&&!st.comp) st.comp=stint.league;
+  const compOptions=stint?compNamesForLeague(stint.league):[];
+  const playerOpts=PLAYERS.map((p,i)=>`<option value="${i}" ${i===st.playerIdx?'selected':''}>${p.name}</option>`).join('');
+  const compOpts=compOptions.map(n=>`<option value="${n}" ${n===st.comp?'selected':''}>${n}</option>`).join('');
+  const noStint=player&&!stint;
+  document.getElementById('appt-modal-body').innerHTML=`
+    <h2>🏃 출전 +1</h2>
+    <form onsubmit="return saveAppt(event)">
+      <div class="mrow">
+        <div class="mfield"><label>선수</label><select onchange="apptFormState.playerIdx=+this.value;apptFormState.comp='';renderApptForm()">${playerOpts}</select></div>
+        ${noStint?'':`<div class="mfield"><label>대회</label><select onchange="apptFormState.comp=this.value">${compOpts}</select></div>`}
+      </div>
+      ${noStint?`<div class="warn-note">이 선수는 ${SL[CUR]} 시즌 소속 정보가 없어 기록할 수 없습니다.</div>`:''}
+      <div class="warn-note" id="appt-form-error"></div>
+      <div class="modal-actions">
+        <div></div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="mbtn secondary" onclick="closeApptForm()">취소</button>
+          <button type="submit" class="mbtn primary" ${noStint?'disabled':''}>+1</button>
+        </div>
+      </div>
+    </form>
+  `;
+}
+async function saveAppt(e){
+  e.preventDefault();
+  const st=apptFormState;
+  const player=PLAYERS[st.playerIdx];
+  const stint=currentStintOf(player);
+  if(!stint||!st.comp){ document.getElementById('appt-form-error').textContent='선수/대회를 확인해주세요.'; return false; }
+  const seasonsCopy=JSON.parse(JSON.stringify(player.seasons));
+  const stintCopy=seasonsCopy[CUR].stints[seasonsCopy[CUR].stints.length-1];
+  let comp=stintCopy.comps.find(c=>c.name===st.comp);
+  if(!comp){ comp={name:st.comp,apps:0,goals:0,assists:0}; stintCopy.comps.push(comp); }
+  comp.apps+=1;
+  const{error}=await sb.from('players').update({seasons:seasonsCopy}).eq('id',player.id);
+  if(error){ document.getElementById('appt-form-error').textContent='실패: '+error.message; return false; }
+  player.seasons=seasonsCopy;
+
+  const title=`[${st.comp}][${stint.team}] ${player.name} 출전`;
+  const{error:postErr}=await sb.from('posts').insert({
+    title, player_id:player.id, event_type:'출전', team:stint.team, league:st.comp,
+  });
+  if(postErr) console.error('출전 게시글 기록 실패(기록 자체는 반영됨)',postErr);
+
+  closeApptForm();
+  render();
+  await loadPosts();
+  renderBoard();
+  return false;
+}
+
 function setLoggedInUI(isLoggedIn){
   document.body.classList.toggle('logged-in',isLoggedIn);
   if(!isLoggedIn){
@@ -1172,7 +1509,9 @@ async function deletePlayerFromModal(){
 }
 
 document.getElementById('content').innerHTML='<div class="empty">불러오는 중…</div>';
+document.getElementById('post-list').innerHTML='<div class="empty">불러오는 중…</div>';
 loadPlayers().then(render).catch(err=>console.error('선수 데이터 로드 실패',err));
+loadPosts().then(renderBoard).catch(err=>console.error('게시글 로드 실패',err));
 </script>
 
 </body></html>
