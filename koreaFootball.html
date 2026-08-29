@@ -1124,10 +1124,8 @@ function renderPostForm(){
   const isEdit=!!st.editingPostId;
   const player=PLAYERS[st.playerIdx];
   const stint=player?currentStintOf(player):null;
-  if(!isEdit){
-    if(stint&&!st.comp) st.comp=stint.league;
-    if(stint) st.team=stint.team;
-  }
+  if(!isEdit && stint && !st.comp) st.comp=stint.league;
+  if(stint) st.team=stint.teamAbbr||stint.team; // 편집 시에도 선수의 현재 팀명(약어)을 다시 확인해서 반영
   const compOptions=stint?compNamesForLeague(stint.league):(st.comp?[st.comp]:[]);
   const playerOpts=PLAYERS.map((p,i)=>`<option value="${i}" ${i===st.playerIdx?'selected':''}>${p.name}</option>`).join('');
   const compOpts=compOptions.map(n=>`<option value="${n}" ${n===st.comp?'selected':''}>${n}</option>`).join('');
@@ -1285,7 +1283,7 @@ async function saveAppt(e){
   player.updatedAt=new Date().toISOString();
   showLatestUpdate();
 
-  const title=`[${st.comp}][${stint.team}] ${player.name} 출전`;
+  const title=`[${st.comp}][${stint.teamAbbr||stint.team}] ${player.name} 출전`;
   const{error:postErr}=await sb.from('posts').insert({
     title, player_id:player.id, event_type:'출전', team:stint.team, league:st.comp,
   });
@@ -1400,6 +1398,7 @@ function renderModal(){
           <input type="text" value="${escAttr(stObj.team)}" placeholder="팀명 (임대 등 표기 포함)" oninput="updateStint(${sIdx},'team',this.value)">
           <button type="button" class="mini-btn" onclick="removeStint(${sIdx})">구간 삭제</button>
         </div>
+        <div class="mfield" style="margin-bottom:8px"><label>약어 (선택, 게시판 제목에 쓰임 — 안 적으면 위 팀명 그대로 사용)</label><input type="text" value="${escAttr(stObj.teamAbbr||'')}" placeholder="예: AT마드리드" oninput="updateStint(${sIdx},'teamAbbr',this.value)"></div>
         ${compsHtml}
         <button type="button" class="mini-btn add" onclick="addComp(${sIdx})">+ 대회 추가</button>
       </div>`;
