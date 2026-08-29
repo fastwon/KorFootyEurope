@@ -260,10 +260,6 @@ body.logged-in .board-btn{display:inline-block}
           <button class="apply-btn" onclick="applyRange()">적용</button>
         </div>
       </div>
-      <p class="fhint">★ 26/27 진행 중 — 리그별로 개막 여부가 달라 이현주·이한범·황인범은 실전 기록 반영, 나머지 확정 선수는 소속만 표시 (이적시장 9월 1일 마감)<br>
-        미확정: 황희찬(울버햄프턴 이탈, 행선지 미정) · 25/26은 최종 기록 (2026년 8월 검증)<br>
-        UEFA TOP 10 리그에서 실제 뛴 선수만 표시<br>
-        ※ 시즌 중 이적한 선수는 뛴 리그 탭마다 모두 나오며, 각 탭에서는 <b>그 소속팀 구간의 기록만</b> 집계됩니다</p>
     </div>
 
     <div id="mode-label" class="mode-label">📅 26/27 시즌 진행 중</div>
@@ -557,7 +553,7 @@ body.logged-in .board-btn{display:inline-block}
     </table></div></div>
     <p class="note">
       출처: Soccerway · FBref · FotMob · 나무위키<br>
-      최신 수정: 2026년 8월 18일
+      최신 수정: <span id="last-updated">—</span>
     </p>
   </div>
 
@@ -567,7 +563,7 @@ body.logged-in .board-btn{display:inline-block}
       <b>UEFA 협회 계수(Association Coefficient)란?</b><br>
       각 국가 리그 소속 클럽들이 UEFA 챔피언스리그·유로파리그·컨퍼런스리그에서 거둔 성적을 바탕으로 산출하는 점수예요.
       최근 5시즌 결과를 합산하며, 이 순위에 따라 각 나라가 유럽 대회에 보낼 수 있는 팀 수가 결정돼요.
-      아래는 <b>2025-26 시즌 종료 시점의 확정 계수 (2021-22 ~ 2025-26 합산)</b>로, 2027-28 시즌 기본 배정에 쓰이는 표예요.
+      위 순위는 <b>2025-26 시즌 종료 시점의 확정 계수 (2021-22 ~ 2025-26 합산)</b>로, 2027-28 시즌 기본 배정에 쓰이는 표예요.
       이 계수 TOP 10 리그에서 활약하는 한국 선수를 추적하고 있어요.<br>
       <span style="color:var(--text-faint)">
         배정 경로는 두 갈래예요. <b>기본 팀 수</b>는 5년 합산 계수를 <b>2년 전</b> 시점에서 끊어 정하고(26/27 배정은 2020-21~2024-25 표로 이미 확정),
@@ -967,7 +963,7 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 function rowToPlayer(row){
-  return{id:row.id,name:row.name,en:row.en,pos:row.pos,ava:{bg:row.ava_bg,c:row.ava_c},seasons:row.seasons};
+  return{id:row.id,name:row.name,en:row.en,pos:row.pos,ava:{bg:row.ava_bg,c:row.ava_c},seasons:row.seasons,updatedAt:row.updated_at};
 }
 function playerToRow(p){
   const row={name:p.name,en:p.en,pos:p.pos,ava_bg:p.ava.bg,ava_c:p.ava.c,seasons:p.seasons};
@@ -981,6 +977,23 @@ async function loadPlayers(){
     throw error;
   }
   PLAYERS=data.map(rowToPlayer);
+  showLatestUpdate();
+}
+function formatKSTDate(isoString){
+  const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'
+  }).formatToParts(new Date(isoString));
+  const get=type=>parts.find(p=>p.type===type).value;
+  return `${get('year')}년 ${get('month')}월 ${get('day')}일`;
+}
+function showLatestUpdate(){
+  const el=document.getElementById('last-updated');
+  if(!el||!PLAYERS.length) return;
+  const latest=PLAYERS.reduce((max,p)=>{
+    const t=p.updatedAt?new Date(p.updatedAt).getTime():0;
+    return t>max?t:max;
+  },0);
+  el.textContent=latest?formatKSTDate(new Date(latest).toISOString()):'—';
 }
 
 /* ===================== 게시판 ===================== */
@@ -1197,6 +1210,8 @@ async function savePost(e){
   const{error:pErr}=await sb.from('players').update({seasons:seasonsCopy}).eq('id',player.id);
   if(pErr){ document.getElementById('post-form-error').textContent='선수 기록 갱신 실패: '+pErr.message; return false; }
   player.seasons=seasonsCopy;
+  player.updatedAt=new Date().toISOString();
+  showLatestUpdate();
 
   const{error:postErr}=await sb.from('posts').insert({
     title, player_id:player.id, event_type:st.eventType, team:st.team, opponent:opponent||null,
@@ -1267,6 +1282,8 @@ async function saveAppt(e){
   const{error}=await sb.from('players').update({seasons:seasonsCopy}).eq('id',player.id);
   if(error){ document.getElementById('appt-form-error').textContent='실패: '+error.message; return false; }
   player.seasons=seasonsCopy;
+  player.updatedAt=new Date().toISOString();
+  showLatestUpdate();
 
   const title=`[${st.comp}][${stint.team}] ${player.name} 출전`;
   const{error:postErr}=await sb.from('posts').insert({
@@ -1500,6 +1517,7 @@ async function savePlayerFromModal(){
   else PLAYERS[editState.idx]=saved;
   closeEditor();
   document.getElementById('edit-status').textContent='저장됨 · '+new Date().toLocaleTimeString('ko-KR');
+  showLatestUpdate();
   render();
 }
 async function deletePlayerFromModal(){
