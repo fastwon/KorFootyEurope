@@ -190,6 +190,9 @@ body.logged-in .board-btn{display:inline-block}
 .board-btn:hover{border-color:var(--accent);color:var(--accent)}
 .board-btn.primary{border-color:var(--accent-strong);background:var(--accent-strong);color:#fff}
 .board-btn.primary:hover{opacity:.9;color:#fff}
+.board-filter-row{display:flex;align-items:center;gap:12px;margin-bottom:1rem;flex-wrap:wrap}
+.board-filter-row select{flex:0 1 200px}
+.board-filter-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);cursor:pointer;white-space:nowrap}
 .post-list{display:flex;flex-direction:column;gap:6px}
 .post-item{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;cursor:pointer;transition:border-color .15s;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .post-item:hover{border-color:var(--accent-strong)}
@@ -234,6 +237,10 @@ body.logged-in .board-btn{display:inline-block}
     <div class="board-toolbar">
       <button class="board-btn primary" onclick="openPostForm()">✏️ 골·도움 기록</button>
       <button class="board-btn" onclick="openApptForm()">🏃 출전만 +1</button>
+    </div>
+    <div class="board-filter-row">
+      <select id="board-player-filter" onchange="boardFilterPlayerId=this.value;renderBoard()"><option value="">전체 선수</option></select>
+      <label class="board-filter-check"><input type="checkbox" id="board-hide-appt" checked onchange="boardHideAppearances=this.checked;renderBoard()"> 출전 기록 숨기기</label>
     </div>
     <div class="post-list" id="post-list"></div>
   </div>
@@ -998,6 +1005,8 @@ function showLatestUpdate(){
 
 /* ===================== 게시판 ===================== */
 let POSTS=[];
+let boardFilterPlayerId='';
+let boardHideAppearances=true;
 
 // 그 선수의 이번 시즌(CUR) 마지막(=현재) 구간 — 게시글/출전 기록 갱신 대상
 function currentStintOf(p){
@@ -1023,8 +1032,23 @@ async function loadPosts(){
 
 function renderBoard(){
   const listEl=document.getElementById('post-list');
-  if(!POSTS.length){ listEl.innerHTML='<div class="empty">아직 게시글이 없습니다.</div>'; return; }
-  listEl.innerHTML=POSTS.map(post=>{
+  const filterSelect=document.getElementById('board-player-filter');
+  if(filterSelect && PLAYERS.length){
+    const prev=boardFilterPlayerId;
+    const sorted=[...PLAYERS].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    filterSelect.innerHTML='<option value="">전체 선수</option>'+
+      sorted.map(p=>`<option value="${p.id}" ${p.id===prev?'selected':''}>${escAttr(p.name)}</option>`).join('');
+  }
+
+  let filtered=POSTS;
+  if(boardFilterPlayerId) filtered=filtered.filter(post=>post.player_id===boardFilterPlayerId);
+  if(boardHideAppearances) filtered=filtered.filter(post=>post.event_type!=='출전');
+
+  if(!filtered.length){
+    listEl.innerHTML=`<div class="empty">${POSTS.length?'조건에 맞는 게시글이 없습니다.':'아직 게시글이 없습니다.'}</div>`;
+    return;
+  }
+  listEl.innerHTML=filtered.map(post=>{
     const dateStr=formatKST(post.created_at);
     return`<div class="post-item" onclick="openPostDetail('${post.id}')">
       <span class="post-title">${escAttr(post.title)}</span>
@@ -1530,7 +1554,7 @@ async function deletePlayerFromModal(){
 
 document.getElementById('content').innerHTML='<div class="empty">불러오는 중…</div>';
 document.getElementById('post-list').innerHTML='<div class="empty">불러오는 중…</div>';
-loadPlayers().then(render).catch(err=>console.error('선수 데이터 로드 실패',err));
+loadPlayers().then(()=>{ render(); renderBoard(); }).catch(err=>console.error('선수 데이터 로드 실패',err));
 loadPosts().then(renderBoard).catch(err=>console.error('게시글 로드 실패',err));
 </script>
 
