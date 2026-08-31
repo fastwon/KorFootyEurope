@@ -64,7 +64,6 @@ select:focus{border-color:var(--accent-strong)}
 .ltab:hover{color:var(--text-heading);border-color:var(--text-muted)}
 .ltab.on{color:#fff;border-color:transparent;font-weight:600}
 .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.mode-label{font-size:12px;color:var(--accent);background:var(--accent-bg-soft);border:1px solid var(--accent-border-soft);border-radius:6px;padding:4px 10px;margin-bottom:1rem;display:inline-block}
 .slbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 8px;display:flex;align-items:center;gap:8px}
 .slbl:first-child{margin-top:0}
 .slbl-dot{width:8px;height:8px;border-radius:50%}
@@ -269,7 +268,6 @@ body.logged-in .board-btn{display:inline-block}
       </div>
     </div>
 
-    <div id="mode-label" class="mode-label">📅 26/27 시즌 진행 중</div>
     <div class="summary">
       <div class="sc"><div class="v" id="tp">12</div><div class="l">활동 선수</div></div>
       <div class="sc"><div class="v" id="tg">1</div><div class="l">총 득점(전체대회)</div></div>
@@ -931,9 +929,6 @@ function renderCards(){
 }
 
 function render(){
-  document.getElementById('mode-label').textContent=
-    mode==='single'?`📅 ${SL[selS]} 시즌 ${selS===CUR?'진행 중':'최종'}`
-    :`📊 ${SL[rfrom]} ~ ${SL[rto]} 합산`;
   if(curTab!=='all'&&!PLAYERS.some(p=>leaguesOfPlayer(p).includes(curTab))) curTab='all';
   buildLeagueTabs();
   renderCards();
