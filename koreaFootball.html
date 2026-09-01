@@ -40,10 +40,9 @@ h1{font-size:22px;font-weight:600;margin-bottom:4px}
 .main-tab{padding:10px 20px;font-size:14px;cursor:pointer;color:var(--text-muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500;white-space:nowrap}
 .main-tab:hover{color:var(--text-heading)}
 .main-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
-.filter-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem}
-.filter-box h3{font-size:13px;font-weight:600;color:var(--text-heading);margin-bottom:12px}
-.sbtn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.sbtn{padding:5px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s}
+.filter-box{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:.75rem .9rem;margin-bottom:.75rem}
+.sbtn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.sbtn{padding:4px 12px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s}
 .sbtn:hover{border-color:var(--text-muted);color:var(--text-heading)}
 .sbtn.on{background:var(--accent-strong);border-color:var(--accent-strong);color:#fff;font-weight:600}
 .sbtn.cur{border-color:var(--gold);color:var(--gold)}
@@ -55,10 +54,10 @@ select:focus{border-color:var(--accent-strong)}
 .apply-btn{padding:5px 14px;border-radius:8px;background:var(--green);color:#fff;border:none;font-size:13px;font-weight:500;cursor:pointer}
 .apply-btn:hover{background:var(--green-hover)}
 .fhint{font-size:11px;color:var(--text-faint);margin-top:8px}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
-.sc{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:.9rem;text-align:center}
-.sc .v{font-size:24px;font-weight:600;color:var(--text-strong)}
-.sc .l{font-size:11px;color:var(--text-muted);margin-top:3px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:.75rem}
+.sc{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:.5rem .4rem;text-align:center}
+.sc .v{font-size:19px;font-weight:600;color:var(--text-strong)}
+.sc .l{font-size:11px;color:var(--text-muted);margin-top:2px}
 .league-tabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
 .ltab{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
 .ltab:hover{color:var(--text-heading);border-color:var(--text-muted)}
@@ -246,7 +245,6 @@ body.logged-in .board-btn{display:inline-block}
 
   <div id="sec-players" style="display:none">
     <div class="filter-box">
-      <h3>📅 시즌 선택</h3>
       <div class="sbtn-row">
         <button class="sbtn cur on" onclick="setSingle(this,'2627')">26/27 ★진행 중</button>
         <button class="sbtn" onclick="setSingle(this,'2526')">25/26</button>
@@ -270,9 +268,9 @@ body.logged-in .board-btn{display:inline-block}
 
     <div class="summary">
       <div class="sc"><div class="v" id="tp">12</div><div class="l">활동 선수</div></div>
-      <div class="sc"><div class="v" id="tg">1</div><div class="l">총 득점(전체대회)</div></div>
-      <div class="sc"><div class="v" id="ta">2</div><div class="l">총 어시스트</div></div>
-      <div class="sc"><div class="v" id="tapp">11</div><div class="l">총 출전</div></div>
+      <div class="sc"><div class="v" id="tg">1</div><div class="l">득점</div></div>
+      <div class="sc"><div class="v" id="ta">2</div><div class="l">어시스트</div></div>
+      <div class="sc"><div class="v" id="tapp">11</div><div class="l">출전</div></div>
     </div>
 
     <div class="league-tabs" id="league-tabs"><button class="ltab on" onclick="setLeagueTab(this,'all')" style="background:#1f3e5a;border-color:transparent;color:#fff"><span class="dot" style="background:#58a6ff"></span>전체(12)</button><button class="ltab" onclick="setLeagueTab(this,'라리가')"><span class="dot" style="background:#f08007"></span>라리가(1)</button><button class="ltab" onclick="setLeagueTab(this,'분데스리가')"><span class="dot" style="background:#d4011d"></span>분데스리가(5)</button><button class="ltab" onclick="setLeagueTab(this,'프리메이라리가')"><span class="dot" style="background:#10b981"></span>프리메이라리가(2)</button><button class="ltab" onclick="setLeagueTab(this,'주필러프로리그')"><span class="dot" style="background:#f59e0b"></span>주필러프로리그(2)</button><button class="ltab" onclick="setLeagueTab(this,'쉬페르리그')"><span class="dot" style="background:#ef4444"></span>쉬페르리그(2)</button></div>
