@@ -122,6 +122,9 @@ select:focus{border-color:var(--accent-strong)}
 .korean-badge.none{background:var(--bg-subtle);color:var(--text-faint);border-color:var(--border)}
 .empty{text-align:center;padding:2.5rem;color:var(--text-muted);font-size:14px;background:var(--bg-elev);border:1px dashed var(--border);border-radius:12px}
 .note{font-size:11px;color:var(--text-faint);margin-top:12px;text-align:right;line-height:1.6}
+.refresh-btn{margin-left:6px;padding:1px 7px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-faint)}
+.refresh-btn:hover:not(:disabled){border-color:var(--text-muted);color:var(--text-heading)}
+.refresh-btn:disabled{opacity:.6;cursor:default}
 
 /* --- 편집 UI --- */
 .theme-toggle-btn{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);transition:all .15s;line-height:1}
@@ -564,6 +567,7 @@ body.logged-in .board-btn{display:inline-block}
     <p class="note">
       출처: Soccerway · FBref · FotMob · 나무위키<br>
       최신 수정: <span id="last-updated">—</span>
+      <button class="refresh-btn" id="refresh-btn" onclick="forceRefreshPlayers()" title="DB에서 강제로 새로 불러오기">🔄 새로고침</button>
     </p>
   </div>
 
@@ -984,21 +988,79 @@ function playerToRow(p){
   if(p.id) row.id=p.id;
   return row;
 }
-async function loadPlayers(){
+/* ----- 선수 데이터 localStorage 캐시 -----
+   부팅 시 무거운 select('*') 대신 updated_at(전체)만 가벼운 쿼리로 확인해서
+   최신값·인원수가 캐시와 같으면(5초 이내 오차 허용) 캐시를 그대로 쓰고,
+   다르면(수정/삭제/추가 등으로 바뀐 경우) 그때만 전체를 다시 받아 캐시를 갱신한다. */
+const PLAYERS_CACHE_KEY='euko-players-cache-v1';
+const PLAYERS_CACHE_STALE_MS=5000;
+
+function readPlayersCache(){
+  try{
+    const raw=localStorage.getItem(PLAYERS_CACHE_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch(e){ return null; }
+}
+function savePlayersCache(rows,meta){
+  try{ localStorage.setItem(PLAYERS_CACHE_KEY,JSON.stringify({rows,meta})); }
+  catch(e){ /* localStorage 사용 불가 시 캐시는 그냥 생략 */ }
+}
+function metaFromRows(rows){
+  const latestMs=rows.reduce((max,r)=>{
+    const t=r.updated_at?new Date(r.updated_at).getTime():0;
+    return t>max?t:max;
+  },0);
+  return{latestMs,count:rows.length};
+}
+async function probePlayersMeta(){
+  const{data,count,error}=await sb.from('players').select('updated_at',{count:'exact'});
+  if(error) throw error;
+  return{...metaFromRows(data),count};
+}
+async function fetchPlayersFull(){
   const{data,error}=await sb.from('players').select('*').order('name');
-  if(error){
+  if(error) throw error;
+  return data;
+}
+async function loadPlayers(force){
+  const cached=force?null:readPlayersCache();
+  try{
+    let stale=true;
+    if(cached){
+      const meta=await probePlayersMeta();
+      stale=Math.abs(meta.latestMs-cached.meta.latestMs)>PLAYERS_CACHE_STALE_MS||meta.count!==cached.meta.count;
+    }
+    if(cached&&!stale){
+      PLAYERS=cached.rows.map(rowToPlayer);
+    }else{
+      const rows=await fetchPlayersFull();
+      PLAYERS=rows.map(rowToPlayer);
+      savePlayersCache(rows,metaFromRows(rows));
+    }
+    showLatestUpdate();
+  }catch(error){
     document.getElementById('content').innerHTML=`<div class="empty">데이터를 불러오지 못했습니다: ${error.message}</div>`;
     throw error;
   }
-  PLAYERS=data.map(rowToPlayer);
-  showLatestUpdate();
 }
-function formatKSTDate(isoString){
+async function forceRefreshPlayers(){
+  const btn=document.getElementById('refresh-btn');
+  if(btn){ btn.disabled=true; btn.textContent='🔄 불러오는 중…'; }
+  try{
+    await loadPlayers(true);
+    render();
+  }catch(error){
+    console.error('새로고침 실패',error);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='🔄 새로고침'; }
+  }
+}
+function formatKSTDateTime(isoString){
   const parts=new Intl.DateTimeFormat('en-US',{
-    timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric'
+    timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
   }).formatToParts(new Date(isoString));
   const get=type=>parts.find(p=>p.type===type).value;
-  return `${get('year')}년 ${get('month')}월 ${get('day')}일`;
+  return `${get('year')}년 ${get('month')}월 ${get('day')}일 ${get('hour')}:${get('minute')}:${get('second')}`;
 }
 function showLatestUpdate(){
   const el=document.getElementById('last-updated');
@@ -1007,7 +1069,7 @@ function showLatestUpdate(){
     const t=p.updatedAt?new Date(p.updatedAt).getTime():0;
     return t>max?t:max;
   },0);
-  el.textContent=latest?formatKSTDate(new Date(latest).toISOString()):'—';
+  el.textContent=latest?formatKSTDateTime(new Date(latest).toISOString()):'—';
 }
 
 /* ===================== 게시판 ===================== */
@@ -1033,10 +1095,25 @@ function formatKST(isoString){
   return `${get('month')}/${get('day')} ${get('hour')}:${get('minute')}`;
 }
 
+/* ----- 게시판 localStorage 캐시 -----
+   수정시간 비교 없이 "일단 캐시로 즉시 보여주고, DB 응답 오면 그걸로 덮어쓰기"만 한다.
+   실패해도 캐시로 그려둔 화면을 비우지 않는다 — 방금 보여준 걸 실패 때문에 지울 이유가 없다. */
+const POSTS_CACHE_KEY='euko-posts-cache-v1';
+function readPostsCache(){
+  try{
+    const raw=localStorage.getItem(POSTS_CACHE_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch(e){ return null; }
+}
+function savePostsCache(posts){
+  try{ localStorage.setItem(POSTS_CACHE_KEY,JSON.stringify(posts)); }
+  catch(e){ /* localStorage 사용 불가 시 캐시는 그냥 생략 */ }
+}
 async function loadPosts(){
   const{data,error}=await sb.from('posts').select('*').order('created_at',{ascending:false});
-  if(error){ console.error('게시글 로드 실패',error); POSTS=[]; return; }
+  if(error){ console.error('게시글 로드 실패',error); return; }
   POSTS=data;
+  savePostsCache(data);
 }
 
 function renderBoard(){
@@ -1584,7 +1661,9 @@ async function deletePlayerFromModal(){
 }
 
 document.getElementById('content').innerHTML='<div class="empty">불러오는 중…</div>';
-document.getElementById('post-list').innerHTML='<div class="empty">불러오는 중…</div>';
+const cachedPosts=readPostsCache();
+if(cachedPosts){ POSTS=cachedPosts; renderBoard(); }
+else{ document.getElementById('post-list').innerHTML='<div class="empty">불러오는 중…</div>'; }
 loadPlayers().then(()=>{ render(); renderBoard(); }).catch(err=>console.error('선수 데이터 로드 실패',err));
 loadPosts().then(renderBoard).catch(err=>console.error('게시글 로드 실패',err));
 </script>
