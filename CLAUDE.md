@@ -37,16 +37,17 @@ UEFA 협회계수 TOP 10 리그에서 뛰는 한국 선수의 시즌별·대회�
 
 ## 프로젝트 형태
 
-- **`koreaFootball.html`이 프론트엔드 전부다.** HTML·CSS·JS가 한 파일에 인라인돼 있고 빌드·번들러 없음. **다만 선수 기록(`PLAYERS`)은 2026년 8월 20일부로 하드코딩이 아니라 Supabase DB에서 매 로드마다 fetch해온다** — 아래 "Supabase DB 연동" 섹션 참고. `UEFA_LEAGUES`·`COUNTRY_COLOR`·`COMP_COUNTRY`·`LC`·`SEASONS`·`SL`·`CUR`·`ASOF` 같은 구조적 상수는 여전히 파일에 하드코딩돼 있다.
+- **`index.html`이 프론트엔드 전부다.** HTML·CSS·JS가 한 파일에 인라인돼 있고 빌드·번들러 없음. **다만 선수 기록(`PLAYERS`)은 2026년 8월 20일부로 하드코딩이 아니라 Supabase DB에서 매 로드마다 fetch해온다** — 아래 "Supabase DB 연동" 섹션 참고. `UEFA_LEAGUES`·`COUNTRY_COLOR`·`COMP_COUNTRY`·`LC`·`SEASONS`·`SL`·`CUR`·`ASOF` 같은 구조적 상수는 여전히 파일에 하드코딩돼 있다.
+- ~~`koreaFootball.html` → `index.html` 파일명 변경~~ → **완료 (2026년 10월 6일).** 원래는 `index.html`이 `<meta http-equiv="refresh">`로 `koreaFootball.html`로 넘기는 리다이렉트 스텁이었는데, 커스텀 도메인(`haewaepa.site`) 연결 후 방문할 때마다 그 리다이렉트가 짧게 깜빡이는 게 눈에 보여서, 아예 실제 내용을 `index.html`로 옮기고 리다이렉트 스텁은 삭제했다. 파일 안에 자기 파일명을 참조하는 코드가 없어서(사전에 grep으로 확인) 이름만 바꿔도 안전했고, 저장소에 추적되는 파일이 4개뿐이라(`.gitignore`, `CLAUDE.md`, `index.html`, 이 변경 전 `koreaFootball.html`) 참조를 놓칠 데도 없었다. 새로고침해도 리다이렉트가 안 보이는 게 이제 기본 동작 — `history.replaceState()`로 주소창만 속이는 방법도 검토했으나, 그러면 오히려 "새로고침할 때마다 리다이렉트가 다시 보이는" 역효과가 생겨서 폐기하고 파일명 자체를 바꾸는 쪽으로 확정함.
 - git 저장소다 (2026년 8월 20일부로 GitHub `fastwon/KorFootyEurope`, `main` 브랜치). 커밋은 사용자가 명시적으로 요청할 때만 한다.
-- `index.html`은 GitHub Pages용 리다이렉트 스텁이다 — 실제 페이지는 여전히 `koreaFootball.html`. GitHub Pages가 루트의 `index.html`을 기본으로 찾기 때문에 존재. 배포 URL: `https://fastwon.github.io/KorFootyEurope/`
-- 과거 스냅샷들은 git 이전 시절의 "복사로 되돌리기" 관행 흔적이라 `.gitignore` 처리돼 로컬에만 남아있고 저장소엔 없다. 최신순: `koreaFootball.pre-db.html`(DB 연동 직전, 2026-08-20) → `koreaFootball.pre-editui.html`(편집 UI 도입 직전, 2026-08-18) → `koreaFootball.backup.html`(기록 검증·구간 구조 도입 이전, 오래됨 — 되돌릴 때 쓰지 말 것) → `koreaFootball.2526final.html`(1단계 시즌축 추가 직전)
+- 과거 스냅샷들은 git 이전 시절의 "복사로 되돌리기" 관행 흔적이라 `.gitignore` 처리돼 로컬에만 남아있고 저장소엔 없다. 최신순: `koreaFootball.pre-db.html`(DB 연동 직전, 2026-08-20) → `koreaFootball.pre-editui.html`(편집 UI 도입 직전, 2026-08-18) → `koreaFootball.backup.html`(기록 검증·구간 구조 도입 이전, 오래됨 — 되돌릴 때 쓰지 말 것) → `koreaFootball.2526final.html`(1단계 시즌축 추가 직전). 이 파일들은 전부 예전 `koreaFootball.html` 기준 이름이고, 파일명 변경과는 무관.
+- **배포**: GitHub Pages(저장소 Settings → Pages, `main` 브랜치 루트) + 커스텀 도메인 `haewaepa.site`(가비아에서 구매, A 레코드 4개로 GitHub Pages IP 연결). 예전엔 `https://fastwon.github.io/KorFootyEurope/`만 있었는데, 지금은 `haewaepa.site`로도 접속 가능 — 저장소 안에 GitHub이 자동 생성한 `CNAME` 파일(내용: `haewaepa.site`)이 이 연결을 담당. `is-a.dev`(무료 서브도메인 서비스)도 시도했으나 "루트 서브도메인은 소프트웨어 개발 관련 사이트만 가능"이라는 정책에 걸려 거절당함 — 이 프로젝트는 그 조건에 안 맞아서 유료 도메인(`.site`, 가비아 연 3,300원 첫 해 프로모션가)으로 대체함.
 
 ## Supabase DB 연동 (2026년 8월 20일 추가, DB 로드맵 2단계)
 
 **3단계 로드맵**: 1) 프론트단 편집 UI(완료, 2026-08-18) → 2) DB 연동(완료, 2026-08-20) → 3) 백엔드 + AI API로 24시간마다 최신 기록 자동 반영(착수 전). 계획 파일: `~/.claude/plans/snappy-coalescing-river.md`.
 
-- **프로젝트**: Supabase, ref `pkrqyawldxdpvcncjtdc`. URL·anon key는 `koreaFootball.html`의 `SUPABASE_URL`/`SUPABASE_ANON_KEY` 상수에 그대로 박혀 있다 — **이건 의도된 것**. anon key는 Supabase 설계상 공개돼도 되는 키이고(비밀 유지 대상이 아님), 실제 방어선은 RLS 정책이다. **`service_role` 키는 절대 이 파일이나 어떤 클라이언트 코드에도 넣으면 안 됨** — 그건 3단계 서버측 Edge Function에서만 쓴다.
+- **프로젝트**: Supabase, ref `pkrqyawldxdpvcncjtdc`. URL·anon key는 `index.html`의 `SUPABASE_URL`/`SUPABASE_ANON_KEY` 상수에 그대로 박혀 있다 — **이건 의도된 것**. anon key는 Supabase 설계상 공개돼도 되는 키이고(비밀 유지 대상이 아님), 실제 방어선은 RLS 정책이다. **`service_role` 키는 절대 이 파일이나 어떤 클라이언트 코드에도 넣으면 안 됨** — 그건 3단계 서버측 Edge Function에서만 쓴다.
 - **테이블 `players`**: `id`(uuid, PK) / `name` / `en` / `pos` / `ava_bg` / `ava_c` / `seasons`(jsonb) / `created_at` / `updated_at`. `seasons` 컬럼에 기존 JS 데이터 모델(`{sid: null|{stints:[...]}}`)을 그대로 JSONB로 저장 — 완전 정규화 대신 이 방식을 택한 이유는 `getPlayerData`/`stintsOf`/`renderCards` 등 기존 렌더링 로직이 정확히 이 중첩 구조를 전제로 짜여 있어서, DB row를 `rowToPlayer()`로 매핑만 하면 **기존 렌더링 로직을 한 줄도 안 건드리고** 그대로 재사용할 수 있기 때문.
   - **`updated_at` 자동 갱신 트리거 추가함(2026년 8월 20일)** — `default now()`는 INSERT 시점에만 값을 채우고 UPDATE 때는 그대로 안 바뀌길래, `set_updated_at()` 함수 + `players_set_updated_at` BEFORE UPDATE 트리거를 SQL Editor에서 추가 실행했다(`fix_updated_at_trigger.sql`, 1회성이라 `.gitignore` 처리). 이제부터 매 UPDATE마다 `updated_at`이 자동으로 현재 시각으로 바뀐다.
 - **RLS 정책**: 공개 SELECT(`using(true)`), INSERT/UPDATE/DELETE는 `auth.role()='authenticated'`만 허용. 특정 user_id 소유권 체크는 안 함 — 어차피 로그인 계정이 사용자 본인 1명뿐이라 "로그인했으면 다 허용"으로 단순화.
@@ -159,7 +160,7 @@ render()  →  buildLeagueTabs()  →  renderCards()
 
 ```js
 const fs=require('fs');
-const scriptText = fs.readFileSync('koreaFootball.html','utf-8')
+const scriptText = fs.readFileSync('index.html','utf-8')
   .match(/<script id="mainscript">([\s\S]*?)<\/script>/)[1];
 // PLAYERS는 로그인/편집 UI 관련 함수(sb.auth...)까지 그대로 남겨두고,
 // 자동 부트스트랩 줄(document.getElementById('content').innerHTML=...; loadPlayers().then(render)...)만
