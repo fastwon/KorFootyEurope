@@ -127,8 +127,9 @@ select:focus{border-color:var(--accent-strong)}
 .refresh-btn:disabled{opacity:.6;cursor:default}
 /* 모바일 당겨서 새로고침 — 브라우저 기본 당김 새로고침(페이지 전체 리로드)은 끄고 자체 처리 */
 html,body{overscroll-behavior-y:contain}
-.ptr-indicator{position:fixed;top:0;left:50%;z-index:90;transform:translate(-50%,-100%);padding:6px 14px;border-radius:0 0 10px 10px;font-size:12px;background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border);border-top:none;box-shadow:0 2px 6px rgba(0,0,0,.12);pointer-events:none;white-space:nowrap}
-.ptr-indicator.animate{transition:transform .2s ease}
+.ptr-indicator{position:fixed;top:0;left:0;right:0;height:0;z-index:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:13px;color:var(--text-muted);pointer-events:none;white-space:nowrap}
+.wrap.ptr-animate,.ptr-indicator.ptr-animate{transition:transform .25s ease,height .25s ease}
+.wrap{position:relative;z-index:1;background:var(--bg);transition:background .15s}
 
 /* --- 편집 UI --- */
 .theme-toggle-btn{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);transition:all .15s;line-height:1}
@@ -1071,25 +1072,29 @@ async function refreshAll(){
 }
 
 /* ----- 모바일 당겨서 새로고침 -----
-   맨 위(scrollY 0)에서 손가락을 아래로 끌면 상단 표시가 따라 내려오고,
-   PTR_THRESHOLD 이상 끌었다 놓으면 refreshAll(). 모달이 열려 있으면 무시. */
+   맨 위(scrollY 0)에서 손가락을 아래로 끌면 페이지 전체(.wrap)가 따라 내려오고,
+   드러난 위쪽 빈 공간에 안내 문구가 보인다. PTR_THRESHOLD 이상 끌었다 놓으면 refreshAll().
+   모달이 열려 있으면 무시. 평소엔 .wrap에 transform을 남기지 않는다. */
 (function setupPullToRefresh(){
-  const PTR_THRESHOLD=70, PTR_MAX=110;
+  const PTR_THRESHOLD=70, PTR_MAX=120, PTR_HOLD=50;
   const ind=document.getElementById('ptr-indicator');
+  const wrap=document.querySelector('.wrap');
   let startY=null, startX=0, pull=0, busy=false;
   const modalOpen=()=>!!document.querySelector('.modal-overlay.open');
-  function show(y,text){
-    ind.textContent=text;
-    ind.style.transform=`translate(-50%,${y-ind.offsetHeight}px)`;
+  function setPull(y,text,animate){
+    wrap.classList.toggle('ptr-animate',!!animate);
+    ind.classList.toggle('ptr-animate',!!animate);
+    wrap.style.transform=y>0?`translateY(${y}px)`:'';
+    ind.style.height=y+'px';
+    if(text!==undefined) ind.textContent=text;
   }
-  function hide(){
-    ind.classList.add('animate');
-    ind.style.transform='translate(-50%,-100%)';
+  function reset(){
+    setPull(0,undefined,true);
+    setTimeout(()=>{ if(!busy&&startY===null){ wrap.classList.remove('ptr-animate'); ind.classList.remove('ptr-animate'); ind.textContent=''; } },260);
   }
   window.addEventListener('touchstart',e=>{
     if(busy||e.touches.length!==1||window.scrollY>0||modalOpen()){ startY=null; return; }
     startY=e.touches[0].clientY; startX=e.touches[0].clientX; pull=0;
-    ind.classList.remove('animate');
   },{passive:true});
   window.addEventListener('touchmove',e=>{
     if(startY===null) return;
@@ -1097,24 +1102,23 @@ async function refreshAll(){
     const dx=e.touches[0].clientX-startX;
     // 가로 스와이프(리그 탭 가로 스크롤 등)로 시작했으면 이번 터치는 포기
     if(pull===0&&Math.abs(dx)>Math.abs(dy)){ startY=null; return; }
-    if(dy<=0||window.scrollY>0){ pull=0; show(0,''); return; }
-    if(e.cancelable) e.preventDefault(); // 브라우저 바운스/기본 새로고침 대신 자체 표시
+    if(dy<=0||window.scrollY>0){ pull=0; setPull(0); return; }
+    if(e.cancelable) e.preventDefault(); // 브라우저 바운스/기본 새로고침 대신 자체 처리
     pull=Math.min(PTR_MAX,dy*0.5);
-    show(pull,pull>=PTR_THRESHOLD?'↑ 놓으면 새로고침':'↓ 당겨서 새로고침');
+    setPull(pull,pull>=PTR_THRESHOLD?'↑ 놓으면 새로고침':'↓ 당겨서 새로고침');
   },{passive:false});
   window.addEventListener('touchend',async()=>{
     if(startY===null) return;
     startY=null;
-    if(pull<PTR_THRESHOLD){ hide(); return; }
+    if(pull<PTR_THRESHOLD){ pull=0; reset(); return; }
     busy=true;
-    ind.classList.add('animate');
-    show(PTR_THRESHOLD*0.6,'🔄 불러오는 중…');
+    setPull(PTR_HOLD,'🔄 불러오는 중…',true);
     try{ await refreshAll(); }
-    finally{ busy=false; pull=0; hide(); }
+    finally{ busy=false; pull=0; reset(); }
   });
   window.addEventListener('touchcancel',()=>{
     if(startY===null) return;
-    startY=null; pull=0; hide();
+    startY=null; pull=0; reset();
   });
 })();
 function formatKSTDateTime(isoString){
