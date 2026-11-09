@@ -125,6 +125,10 @@ select:focus{border-color:var(--accent-strong)}
 .refresh-btn{margin-left:6px;padding:1px 7px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-faint)}
 .refresh-btn:hover:not(:disabled){border-color:var(--text-muted);color:var(--text-heading)}
 .refresh-btn:disabled{opacity:.6;cursor:default}
+/* 모바일 당겨서 새로고침 — 브라우저 기본 당김 새로고침(페이지 전체 리로드)은 끄고 자체 처리 */
+html,body{overscroll-behavior-y:contain}
+.ptr-indicator{position:fixed;top:0;left:50%;z-index:90;transform:translate(-50%,-100%);padding:6px 14px;border-radius:0 0 10px 10px;font-size:12px;background:var(--bg-elev);color:var(--text-muted);border:1px solid var(--border);border-top:none;box-shadow:0 2px 6px rgba(0,0,0,.12);pointer-events:none;white-space:nowrap}
+.ptr-indicator.animate{transition:transform .2s ease}
 
 /* --- 편집 UI --- */
 .theme-toggle-btn{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--bg-elev);color:var(--text-muted);transition:all .15s;line-height:1}
@@ -223,6 +227,7 @@ body.logged-in .board-btn{display:inline-block}
 </style>
 </head>
 <body class="">
+<div class="ptr-indicator" id="ptr-indicator"></div>
 <div class="wrap">
   <div class="title-row">
     <h1>⚽ 해외파 한국 선수 기록</h1>
@@ -1049,12 +1054,69 @@ async function forceRefreshPlayers(){
   try{
     await loadPlayers(true);
     render();
+    renderBoard();
+    if(document.getElementById('sec-coef').style.display!=='none') renderCoef();
   }catch(error){
     console.error('새로고침 실패',error);
   }finally{
     if(btn){ btn.disabled=false; btn.textContent='🔄 새로고침'; }
   }
 }
+// 당겨서 새로고침 — 어느 탭에서든 선수 데이터(캐시 무시)와 게시판을 같이 다시 받아온다
+async function refreshAll(){
+  await Promise.all([
+    forceRefreshPlayers(),
+    loadPosts().then(renderBoard).catch(err=>console.error('게시글 로드 실패',err))
+  ]);
+}
+
+/* ----- 모바일 당겨서 새로고침 -----
+   맨 위(scrollY 0)에서 손가락을 아래로 끌면 상단 표시가 따라 내려오고,
+   PTR_THRESHOLD 이상 끌었다 놓으면 refreshAll(). 모달이 열려 있으면 무시. */
+(function setupPullToRefresh(){
+  const PTR_THRESHOLD=70, PTR_MAX=110;
+  const ind=document.getElementById('ptr-indicator');
+  let startY=null, startX=0, pull=0, busy=false;
+  const modalOpen=()=>!!document.querySelector('.modal-overlay.open');
+  function show(y,text){
+    ind.textContent=text;
+    ind.style.transform=`translate(-50%,${y-ind.offsetHeight}px)`;
+  }
+  function hide(){
+    ind.classList.add('animate');
+    ind.style.transform='translate(-50%,-100%)';
+  }
+  window.addEventListener('touchstart',e=>{
+    if(busy||e.touches.length!==1||window.scrollY>0||modalOpen()){ startY=null; return; }
+    startY=e.touches[0].clientY; startX=e.touches[0].clientX; pull=0;
+    ind.classList.remove('animate');
+  },{passive:true});
+  window.addEventListener('touchmove',e=>{
+    if(startY===null) return;
+    const dy=e.touches[0].clientY-startY;
+    const dx=e.touches[0].clientX-startX;
+    // 가로 스와이프(리그 탭 가로 스크롤 등)로 시작했으면 이번 터치는 포기
+    if(pull===0&&Math.abs(dx)>Math.abs(dy)){ startY=null; return; }
+    if(dy<=0||window.scrollY>0){ pull=0; show(0,''); return; }
+    if(e.cancelable) e.preventDefault(); // 브라우저 바운스/기본 새로고침 대신 자체 표시
+    pull=Math.min(PTR_MAX,dy*0.5);
+    show(pull,pull>=PTR_THRESHOLD?'↑ 놓으면 새로고침':'↓ 당겨서 새로고침');
+  },{passive:false});
+  window.addEventListener('touchend',async()=>{
+    if(startY===null) return;
+    startY=null;
+    if(pull<PTR_THRESHOLD){ hide(); return; }
+    busy=true;
+    ind.classList.add('animate');
+    show(PTR_THRESHOLD*0.6,'🔄 불러오는 중…');
+    try{ await refreshAll(); }
+    finally{ busy=false; pull=0; hide(); }
+  });
+  window.addEventListener('touchcancel',()=>{
+    if(startY===null) return;
+    startY=null; pull=0; hide();
+  });
+})();
 function formatKSTDateTime(isoString){
   const parts=new Intl.DateTimeFormat('en-US',{
     timeZone:'Asia/Seoul',year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
